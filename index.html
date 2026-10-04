@@ -228,6 +228,18 @@ body .tstrip b{font-size:15px}
 body .gr{grid-template-columns:1fr 110px 40px 235px}
 body .gr .gs{gap:8px}
 }
+.dod .sm{display:flex;flex-wrap:wrap;gap:4px 16px;padding:12px 0 10px;font-size:12.5px;font-weight:600;border-bottom:1px solid var(--line)}
+.dod .sm .lt{flex-basis:100%;color:var(--sub);font-weight:500;font-size:12px}
+.dr{display:grid;grid-template-columns:84px 1fr auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.rows .dr:last-child{border:0}
+.dd b{display:block;font-size:13px}.dd small{color:var(--sub);font-size:11px}
+.dr .b2{margin-top:0}.dr .gs{margin-top:5px;font-size:11.5px}
+.dv{text-align:right;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dv small{display:block;font-size:10.5px;font-weight:500;opacity:.85}
+.dv.fl{color:var(--sub)}
+.dodb{display:block;margin:2px auto 10px;color:var(--sub);font-size:12px;font-weight:600;padding:8px 14px}
+body.pm .dod{display:none!important}
+@media print{.dod{display:none!important}}
 </style>
 </head>
 <body>
@@ -262,7 +274,7 @@ body .gr .gs{gap:8px}
 <script>
 const KEY='habit_tracker_v1';
 const SAMPLE={start:'2026-09-28',days:120,tgt:[60,60,60,60,60,60,0,0],goals:["📚 8:00–9:00 → AM","🎯 9:00–10:00 → AM","✒️ 11:30–12:30 → AM","📝 8:00–9:00 → PM","📖 9:00–10:00 → PM","📙 11:00–12:00 → PM","📝 Review Days","✊ Hold On"],log:{1:"01110011",2:"00010001",3:"01111001",4:"11100000",5:"01111000",6:"101----0"}};
-let S=load(),cur=1,view=1;
+let S=load(),cur=1,view=1,dodAll=false;
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.goals)return s}catch(e){}return JSON.parse(JSON.stringify(SAMPLE))}
 function save(){S.upd=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}sched()}
 const $=id=>document.getElementById(id);
@@ -335,6 +347,28 @@ function renderDash(c){
   for(let g=0;g<G;g++)for(let d=1;d<=D;d++){const v=cell(d,g);cells+='<rect x="'+(d-1)*8+'" y="'+g*16+'" width="7" height="14" rx="1.5" class="'+(v==='1'?'hy':v==='0'?'hn':'he')+'"/>'}
   const hm='<div class="hm" style="--n:'+G+'"><div class="hl">'+S.goals.map(n=>'<div>'+esc(n)+'</div>').join('')+'</div><div class="hr"><svg viewBox="0 0 '+D*8+' '+G*16+'" preserveAspectRatio="none">'+cells+'</svg><div class="ax"><span>Day 1</span><span>Day '+D+'</span></div></div></div>';
   const goals=S.goals.map((n,g)=>{const p=c.per[g],t=S.tgt[g]||0;return row(esc(n)+(t?'<em class="tg">'+dur(t)+'/day</em>':''),D?p.y/D:0,'<span>✔ '+p.y+' days</span>'+(t?'<span>⏱ '+dur(p.y*t)+'</span>':'')+'<span>🔥 '+p.c+' streak</span><span>🏆 '+p.b+' best</span>')}).join('');
+  // day-over-day change
+  const tmin=d=>{let s=0;for(let g=0;g<G;g++)if(cell(d,g)==='1')s+=S.tgt[g]||0;return s};
+  const tdays=[];for(let d=1;d<=D;d++)if(trk[d])tdays.push(d);
+  let up=0,dn=0,eq=0;
+  const drows=tdays.map((d,i)=>{
+    const pv=i?tdays[i-1]:0,dp=pv?Math.round(pc[d]*100)-Math.round(pc[pv]*100):null,dg=pv?c.dd[d]-c.dd[pv]:null;
+    let cls='fl',tx='—',sb='first day';
+    if(dp!==null){
+      if(dp>0){up++;cls='ok';tx='▲ +'+dp+'%'}else if(dp<0){dn++;cls='bad';tx='▼ −'+Math.abs(dp)+'%'}else{eq++;tx='＝ 0%'}
+      sb=(dg>0?'+':dg<0?'−':'±')+Math.abs(dg)+' goal'+(Math.abs(dg)===1?'':'s')+' vs Day '+pv;
+    }
+    return{d,cls,tx,sb,
+      h:'<div class="dr"><div class="dd"><b>'+fmt(dateOf(d),{weekday:'short',day:'numeric',month:'short'})+'</b><small>Day '+d+'</small></div>'+
+      '<div><div class="b2"><i style="width:'+Math.round(pc[d]*100)+'%"></i></div><div class="gs"><span>'+c.dd[d]+'/'+G+' · '+pct(pc[d])+'</span>'+(c.dt?'<span>⏱ '+dur(tmin(d))+'</span>':'')+'</div></div>'+
+      '<div class="dv '+cls+'">'+tx+'<small>'+sb+'</small></div></div>'};
+  }).reverse();
+  const shown=dodAll?drows:drows.slice(0,7);
+  const dod=drows.length?'<div class="dod"><h3>Day-over-day change</h3><div class="card">'+
+    '<div class="sm"><span class="ok">▲ '+up+' up</span><span class="bad">▼ '+dn+' down</span><span style="color:var(--sub)">＝ '+eq+' same</span><span class="lt">Each day compared with the previous tracked day</span></div>'+
+    '<div class="rows">'+shown.map(r=>r.h).join('')+'</div>'+
+    (drows.length>7?'<button class="dodb" id="dodb">'+(dodAll?'Show less':'Show all '+drows.length+' days')+'</button>':'')+
+    '</div></div>':'';
   const tr=c.dt&&c.tracked?c.inv/(c.dt*c.tracked):0;
   const tstrip=c.dt?'<div class="card tstrip"><div><b>'+dur(c.dt)+'</b><span>Daily target</span></div><div><b>'+dur(c.inv)+'</b><span>Time invested</span></div><div><b>'+dur(Math.round(c.tracked?c.inv/c.tracked:0))+'</b><span>Avg / day</span></div><div><b>'+pct(tr)+'</b><span>Of target time</span></div></div>':'';
   let wk='';
@@ -346,11 +380,13 @@ function renderDash(c){
    '<div class="card hero">'+ring(ov)+'<div class="hk"><div><b>'+c.tot+'</b><span>Check-ins done</span></div><div><b>'+pend+'</b><span>Pending</span></div><div><b>'+c.tracked+'</b><span>Days tracked</span></div><div><b>'+pct(avg)+'</b><span>Daily average</span></div><div><b>'+perfect+'</b><span>Perfect days</span></div><div><b>'+streak+'d</b><span>Active streak</span></div></div></div>'+
    tstrip+ins+
    '<div class="r2"><div><h3>Consistency trend</h3><div class="card trend">'+trend+'<div class="lg"><i class="k1"></i> daily %  <i class="k2"></i> 7-day average</div></div></div><div><h3>By weekday</h3><div class="card chart">'+wcols+'</div></div></div>'+
+   dod+
    '<h3>Day-by-day consistency <span class="lgd"><i class="hy"></i>done <i class="hn"></i>missed <i class="he"></i>pending</span></h3><div class="card">'+hm+'</div>'+
    '<h3>Goal performance</h3><div class="card">'+goals+'</div>'+
    '<h3>Weekly progress</h3><div class="card"><div class="wg">'+wk+'</div></div>'+
    '<p class="foot">Progress = completed check-ins ÷ scheduled check-ins · Active streak = consecutive days with ≥50% completion · Time invested = target time of completed goals · Generated '+gen+'</p>';
   $('pdf').onclick=pmOn;
+  const db=$('dodb');if(db)db.onclick=()=>{dodAll=!dodAll;renderDash(calc())};
 }
 function pmOn(){
   const b=document.body,el=$('dash');b.classList.add('pm');
