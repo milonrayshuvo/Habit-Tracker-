@@ -264,6 +264,8 @@ body.pm.nm #v4{display:block!important}
 .gi2{display:flex;gap:8px;margin:-2px 0 12px}.gi2 input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font:inherit;font-size:14px}
 .wl{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.wl span{color:var(--sub)}.wl b{text-align:right}.wr .np{margin:8px 0 0}
 .b3r{width:100%;text-align:left}.b3t{font-size:15px;line-height:1.35}.b3r.d .b3t{color:var(--sub);text-decoration:line-through}
+.b3t{flex:1}.b3s{font-size:12px;color:var(--sub);font-weight:600}
+body.pm .hk{grid-template-columns:repeat(4,1fr)}
 </style>
 </head>
 <body>
@@ -308,7 +310,7 @@ const $=id=>document.getElementById(id);
 const pct=x=>Math.round(x*100)+'%';
 const dur=m=>m>=60?Math.floor(m/60)+'h'+(m%60?' '+(m%60)+'m':''):m+'m';
 function autoMin(n){const m=String(n).match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);if(!m)return 0;const a=+m[1]*60+ +m[2],b=+m[3]*60+ +m[4];return((b-a)%720+720)%720}
-function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.b3=S.b3||{}}
+function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.b3=S.b3||{};if(!Array.isArray(S.b3t)){S.b3t=['','',''];for(const k of Object.keys(S.b3).map(Number).sort((a,b)=>b-a)){const a=S.b3[k]||[];if(a.some(x=>x&&x.t)){S.b3t=[0,1,2].map(i=>(a[i]&&a[i].t)||'');break}}}for(let i=0;i<3;i++)if(typeof S.b3t[i]!=='string')S.b3t[i]='';S.b3t.length=3}
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const dateOf=n=>{const d=new Date(S.start+'T00:00:00');d.setDate(d.getDate()+n-1);return d};
 const fmt=(d,o)=>d.toLocaleDateString('en-GB',o);
@@ -317,10 +319,12 @@ function setCell(d,g,v){const a=(S.log[d]||'').padEnd(S.goals.length,'-').split(
 function setNote(d,g,v){v=String(v||'').trim().slice(0,500);const k=d+':'+g;if(v){(S.notes=S.notes||{})[k]=v}else if(S.notes)delete S.notes[k];save()}
 function ntHtml(d,g){const t=(S.notes||{})[d+':'+g];return '<button class="nt'+(t?' has':'')+'" data-n="'+g+'">'+(t?'📝 '+esc(t):'＋ কেন হয়নি? নোট লিখুন')+'</button>'}
 function catHtml(d,g){const v=S.cat[d+':'+g]||'';return '<select class="nc" data-c="'+g+'"><option value="">Reason…</option>'+CATS.map(c=>'<option'+(c===v?' selected':'')+'>'+c+'</option>').join('')+'</select>'}
+function b3x(d,i){return !!((S.b3[d]||[])[i]||{}).d}
+function b3s(i,d){let s=0;for(let x=d;x>=1;x--){if(b3x(x,i))s++;else if(x!==d)break}return s}
 function b3a(){return S.b3[cur]||(S.b3[cur]=[{t:'',d:0},{t:'',d:0},{t:'',d:0}])}
 function extras(){
-  const b=(S.b3[cur]||[]).concat([{},{},{}]).slice(0,3),n=b.filter(x=>x.d).length;
-  $('b3').innerHTML='<div class="b3"><div class="b3h"><b>Today’s Big 3</b><span>'+n+'/3</span></div>'+(b.some(x=>x.t)?b.map((x,i)=>x.t?'<button class="b3r'+(x.d?' d':'')+'" data-b="'+i+'"><span class="ck'+(x.d?' y':'')+'">'+(x.d?'✓':'')+'</span><span class="b3t">'+esc(x.t)+'</span></button>':'').join(''):'<p class="np" style="margin:2px 0 4px">Add your 3 tasks in Settings.</p>')+'</div>';
+  const T=S.b3t,n=T.filter((s,i)=>s&&b3x(cur,i)).length;
+  $('b3').innerHTML='<div class="b3"><div class="b3h"><b>Today’s Big 3</b><span>'+n+'/3</span></div>'+(T.some(Boolean)?T.map((s,i)=>{if(!s)return'';const d=b3x(cur,i),k=b3s(i,cur);return'<button class="b3r'+(d?' d':'')+'" data-b="'+i+'"><span class="ck'+(d?' y':'')+'">'+(d?'✓':'')+'</span><span class="b3t">'+esc(s)+'</span>'+(k?'<span class="b3s">🔥 '+k+'</span>':'')+'</button>'}).join(''):'<p class="np" style="margin:2px 0 4px">Add your 3 tasks in Settings.</p>')+'</div>';
   let m=0;for(let g=0;g<S.goals.length;g++)if(cell(cur,g)==='0')m+=S.tgt[g]||0;
   const r=Math.min(90,m);$('rcv').innerHTML=r?'<button class="rcb'+(S.rec[cur]?' on':'')+'" id="rcbt">↻ Recovery (optional, max 90m): '+dur(r)+(S.rec[cur]?' · done ✓':'')+'</button>':''
 }
@@ -433,7 +437,7 @@ function renderDash(c){
     const rk=Object.keys(rw).sort((a,b)=>rw[b]-rw[a]),tr1=rk[0];
     const sw=Object.keys(sm).map(k=>{const gs=all.filter(g=>S.sub[g]===k);return{k,r:gs.reduce((s,g)=>s+yc(g),0)/(gs.length*N)}});
     const bsb=sw.length?mx(sw,o=>o.r):0,wsb=sw.length?mn(sw,o=>o.r):0,t2=sw.length>1&&bsb.r!==wsb.r;
-    let tot=0,tmw=0,b3d=0,b3t=0;wd.forEach(d=>{tot+=c.dd[d];tmw+=tmin(d);(S.b3[d]||[]).forEach(x=>{if(x.t){b3t++;if(x.d)b3d++}})});
+    let tot=0,tmw=0,b3d=0,b3t=0;wd.forEach(d=>{tot+=c.dd[d];tmw+=tmin(d);S.b3t.forEach((s,i)=>{if(s){b3t++;if(b3x(d,i))b3d++}})});
     const sn=o=>esc(S.goals[o.g]);
     const kv=[['Completion',pct(tot/(G*N))+' · '+tot+'/'+G*N],['Study time',dur(tmw)],['Strongest slot',two?sn(bs)+' · '+pct(bs.r):''],['Weakest slot',two?sn(ws)+' · '+pct(ws.r):''],['Best weekday',tw?fmt(dateOf(bd.d),{weekday:'long'}):''],['Worst weekday',tw?fmt(dateOf(wy.d),{weekday:'long'}):''],['Top missed reason',tr1?esc(tr1)+' · '+rw[tr1]:''],['Best subject',t2?esc(bsb.k)+' · '+pct(bsb.r):''],['Needs attention',t2?esc(wsb.k)+' · '+pct(wsb.r):''],['Big 3',b3t?b3d+'/'+b3t+' done':'']].filter(x=>x[1]);
     const I=[];
@@ -442,6 +446,8 @@ function renderDash(c){
     if(t2)I.push(esc(bsb.k)+' is your strongest subject this week; '+esc(wsb.k)+' needs the most attention.');
     const fx=tr1&&rw[tr1]>1&&FXS[CATS.indexOf(tr1)]||(two&&ws.r<1?'Move or simplify the '+sn(ws)+' slot.':'Keep your routine and aim for one more completed slot per day.');
     wrv='<div class="dod"><h3>Weekly review · Week '+((wk0-1)/7+1)+'</h3><div class="card wr">'+kv.map(x=>'<div class="wl"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>').join('')+I.map(s=>'<p class="np">• '+s+'</p>').join('')+'<p class="np"><b style="color:var(--ink)">Next week:</b> '+fx+'</p></div></div>'}
+  let b3sec='';const b3i=[0,1,2].filter(i=>S.b3t[i]);
+  if(b3i.length&&ts)b3sec='<h3>Daily Big 3</h3><div class="card">'+b3i.map(i=>{let y=0,b=0,r=0;for(let d=1;d<=D;d++){if(b3x(d,i)){y++;r++;b=Math.max(b,r)}else r=0}return row(esc(S.b3t[i]),Math.min(1,y/ts),'<span>✔ '+y+' days</span><span>🔥 '+b3s(i,Math.max(1,el))+' streak</span><span>🏆 '+b+' best</span>')}).join('')+'</div>';
   const tr=c.dt&&c.tracked?c.inv/(c.dt*c.tracked):0;
   const tstrip=c.dt?'<div class="card tstrip"><div><b>'+dur(c.dt)+'</b><span>Daily target</span></div><div><b>'+dur(c.inv)+'</b><span>Time invested</span></div><div><b>'+dur(Math.round(c.tracked?c.inv/c.tracked:0))+'</b><span>Avg / day</span></div><div><b>'+pct(tr)+'</b><span>Of target time</span></div></div>':'';
   let wk='';
@@ -450,8 +456,8 @@ function renderDash(c){
   $('dash').innerHTML=
    '<div class="dh"><div><h2>Habit Tracker</h2><p>Progress report · '+range+'</p></div><button id="pdf">⬇ PDF</button></div>'+
    '<div class="tl"><div class="line"><i style="width:'+(D?el/D*100:0)+'%"></i></div><div class="tls"><span>Day '+el+' of '+D+'</span><span>'+left+' days left</span></div></div>'+
-   '<div class="card hero">'+ring(ov)+'<div class="hk"><div><b>'+c.tot+'</b><span>Check-ins done</span></div><div><b>'+pend+'</b><span>Pending</span></div><div><b>'+c.tracked+'</b><span>Days tracked</span></div><div><b>'+pct(avg)+'</b><span>Daily average</span></div><div><b>'+perfect+'</b><span>Perfect days</span></div><div><b>'+streak+'d</b><span>Active streak</span></div></div></div>'+
-   tstrip+ins+wrv+
+   '<div class="card hero">'+ring(ov)+'<div class="hk"><div><b>'+c.tracked+'</b><span>Days tracked</span></div><div><b>'+pct(avg)+'</b><span>Daily average</span></div><div><b>'+perfect+'</b><span>Perfect days</span></div><div><b>'+streak+'d</b><span>Active streak</span></div></div></div>'+
+   b3sec+tstrip+ins+wrv+
    '<div class="r2"><div><h3>Consistency trend</h3><div class="card trend">'+trend+'<div class="lg"><i class="k1"></i> daily %  <i class="k2"></i> 7-day average</div></div></div><div><h3>By weekday</h3><div class="card chart">'+wcols+'</div></div></div>'+
    dod+nts+
    '<h3>Day-by-day consistency <span class="lgd"><i class="hy"></i>done <i class="hn"></i>missed <i class="he"></i>pending</span></h3><div class="card">'+hm+'</div>'+
@@ -525,7 +531,7 @@ async function pull(manual){
 addEventListener('online',()=>push());
 function renderSettings(){
   ensure();
-  $('b3d').textContent=fmt(dateOf(cur),{day:'numeric',month:'short'});$('b3e').innerHTML=[0,1,2].map(i=>'<input data-bt="'+i+'" placeholder="Task '+(i+1)+'" maxlength="80" value="'+esc(((S.b3[cur]||[])[i]||{}).t||'')+'" style="width:100%;margin-bottom:8px">').join('');$('start').value=S.start;$('cu').value=C.url||'';$('ck').value=C.key||'';$('days').value=S.days;
+  $('b3d').textContent='same every day';$('b3e').innerHTML=[0,1,2].map(i=>'<input data-bt="'+i+'" placeholder="Task '+(i+1)+'" maxlength="80" value="'+esc(S.b3t[i]||'')+'" style="width:100%;margin-bottom:8px">').join('');$('start').value=S.start;$('cu').value=C.url||'';$('ck').value=C.key||'';$('days').value=S.days;
   $('gl').innerHTML=S.goals.map((n,g)=>'<div class="gi"><input data-g="'+g+'" value="'+esc(n)+'"><input class="tmi" type="number" inputmode="numeric" min="0" max="1440" data-t="'+g+'" value="'+(S.tgt[g]||0)+'" title="minutes per day"><button data-x="'+g+'">×</button></div><div class="gi2"><input data-s="'+g+'" placeholder="Subject" value="'+esc(S.sub[g])+'"><input data-k="'+g+'" placeholder="Task" value="'+esc(S.tk[g])+'"></div>').join('');
 }
 
@@ -537,7 +543,7 @@ $('list').addEventListener('click',e=>{const n=e.target.closest('.nt');if(!n)ret
   ta.onblur=()=>{setNote(d,g,ta.value);if(!ta.parentNode)return;ta.insertAdjacentHTML('afterend',ntHtml(d,g));ta.remove();renderDash(calc())}});
 $('list').addEventListener('change',e=>{const s=e.target.closest('.nc');if(!s)return;const k=cur+':'+s.dataset.c;if(s.value)S.cat[k]=s.value;else delete S.cat[k];save();renderDash(calc())});
 $('b3').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;const x=b3a()[+b.dataset.b];x.d=x.d?0:1;save();extras();renderDash(calc())};
-$('b3e').onchange=e=>{const i=e.target.dataset.bt;if(i===undefined)return;b3a()[+i].t=e.target.value.trim();save();render()};
+$('b3e').onchange=e=>{const i=e.target.dataset.bt;if(i===undefined)return;S.b3t[+i]=e.target.value.trim();save();render()};
 $('rcv').onclick=e=>{if(!e.target.closest('#rcbt'))return;S.rec[cur]=S.rec[cur]?0:1;save();extras();renderDash(calc())};
 $('pv').onclick=()=>{cur--;render()};$('nx').onclick=()=>{cur++;render()};
 $('dt').onclick=()=>{cur=todayIdx();render()};
