@@ -263,6 +263,7 @@ body.pm.nm #v4{display:block!important}
 .rcb{display:block;width:100%;margin:12px 0 0;padding:12px;border-radius:12px;background:var(--soft);color:var(--sub);font-size:13px;font-weight:600}.rcb.on{color:var(--ok)}
 .gi2{display:flex;gap:8px;margin:-2px 0 12px}.gi2 input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font:inherit;font-size:14px}
 .wl{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.wl span{color:var(--sub)}.wl b{text-align:right}.wr .np{margin:8px 0 0}
+.b3r{width:100%;text-align:left}.b3t{font-size:15px;line-height:1.35}.b3r.d .b3t{color:var(--sub);text-decoration:line-through}
 </style>
 </head>
 <body>
@@ -281,6 +282,7 @@ body.pm.nm #v4{display:block!important}
     <div class="f"><span>Target days</span><input type="number" id="days" min="1" max="365"></div>
     <h3>Goals <span class="lgd">daily target (min)</span></h3><div id="gl"></div>
     <div class="act"><button id="addg">+ Add goal</button></div>
+    <h3>Big 3 <span class="lgd" id="b3d"></span></h3><div id="b3e"></div>
     <h3>Cloud sync</h3>
     <input id="cu" placeholder="Script URL (https://script.google.com/.../exec)" style="width:100%;margin-bottom:8px">
     <input id="ck" type="password" placeholder="Secret code" style="width:100%">
@@ -318,7 +320,7 @@ function catHtml(d,g){const v=S.cat[d+':'+g]||'';return '<select class="nc" data
 function b3a(){return S.b3[cur]||(S.b3[cur]=[{t:'',d:0},{t:'',d:0},{t:'',d:0}])}
 function extras(){
   const b=(S.b3[cur]||[]).concat([{},{},{}]).slice(0,3),n=b.filter(x=>x.d).length;
-  $('b3').innerHTML='<div class="b3"><div class="b3h"><b>Today’s Big 3</b><span>'+n+'/3</span></div>'+b.map((x,i)=>'<div class="b3r"><button class="ck'+(x.d?' y':'')+'" data-b="'+i+'">'+(x.d?'✓':'')+'</button><input data-bt="'+i+'" value="'+esc(x.t||'')+'" placeholder="Task '+(i+1)+'" maxlength="80"></div>').join('')+'</div>';
+  $('b3').innerHTML='<div class="b3"><div class="b3h"><b>Today’s Big 3</b><span>'+n+'/3</span></div>'+(b.some(x=>x.t)?b.map((x,i)=>x.t?'<button class="b3r'+(x.d?' d':'')+'" data-b="'+i+'"><span class="ck'+(x.d?' y':'')+'">'+(x.d?'✓':'')+'</span><span class="b3t">'+esc(x.t)+'</span></button>':'').join(''):'<p class="np" style="margin:2px 0 4px">Add your 3 tasks in Settings.</p>')+'</div>';
   let m=0;for(let g=0;g<S.goals.length;g++)if(cell(cur,g)==='0')m+=S.tgt[g]||0;
   const r=Math.min(90,m);$('rcv').innerHTML=r?'<button class="rcb'+(S.rec[cur]?' on':'')+'" id="rcbt">↻ Recovery (optional, max 90m): '+dur(r)+(S.rec[cur]?' · done ✓':'')+'</button>':''
 }
@@ -523,7 +525,7 @@ async function pull(manual){
 addEventListener('online',()=>push());
 function renderSettings(){
   ensure();
-  $('start').value=S.start;$('cu').value=C.url||'';$('ck').value=C.key||'';$('days').value=S.days;
+  $('b3d').textContent=fmt(dateOf(cur),{day:'numeric',month:'short'});$('b3e').innerHTML=[0,1,2].map(i=>'<input data-bt="'+i+'" placeholder="Task '+(i+1)+'" maxlength="80" value="'+esc(((S.b3[cur]||[])[i]||{}).t||'')+'" style="width:100%;margin-bottom:8px">').join('');$('start').value=S.start;$('cu').value=C.url||'';$('ck').value=C.key||'';$('days').value=S.days;
   $('gl').innerHTML=S.goals.map((n,g)=>'<div class="gi"><input data-g="'+g+'" value="'+esc(n)+'"><input class="tmi" type="number" inputmode="numeric" min="0" max="1440" data-t="'+g+'" value="'+(S.tgt[g]||0)+'" title="minutes per day"><button data-x="'+g+'">×</button></div><div class="gi2"><input data-s="'+g+'" placeholder="Subject" value="'+esc(S.sub[g])+'"><input data-k="'+g+'" placeholder="Task" value="'+esc(S.tk[g])+'"></div>').join('');
 }
 
@@ -535,7 +537,7 @@ $('list').addEventListener('click',e=>{const n=e.target.closest('.nt');if(!n)ret
   ta.onblur=()=>{setNote(d,g,ta.value);if(!ta.parentNode)return;ta.insertAdjacentHTML('afterend',ntHtml(d,g));ta.remove();renderDash(calc())}});
 $('list').addEventListener('change',e=>{const s=e.target.closest('.nc');if(!s)return;const k=cur+':'+s.dataset.c;if(s.value)S.cat[k]=s.value;else delete S.cat[k];save();renderDash(calc())});
 $('b3').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;const x=b3a()[+b.dataset.b];x.d=x.d?0:1;save();extras();renderDash(calc())};
-$('b3').onchange=e=>{const i=e.target.dataset.bt;if(i===undefined)return;b3a()[+i].t=e.target.value.trim();save();renderDash(calc())};
+$('b3e').onchange=e=>{const i=e.target.dataset.bt;if(i===undefined)return;b3a()[+i].t=e.target.value.trim();save();render()};
 $('rcv').onclick=e=>{if(!e.target.closest('#rcbt'))return;S.rec[cur]=S.rec[cur]?0:1;save();extras();renderDash(calc())};
 $('pv').onclick=()=>{cur--;render()};$('nx').onclick=()=>{cur++;render()};
 $('dt').onclick=()=>{cur=todayIdx();render()};
