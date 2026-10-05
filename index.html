@@ -310,7 +310,7 @@ const $=id=>document.getElementById(id);
 const pct=x=>Math.round(x*100)+'%';
 const dur=m=>m>=60?Math.floor(m/60)+'h'+(m%60?' '+(m%60)+'m':''):m+'m';
 function autoMin(n){const m=String(n).match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);if(!m)return 0;const a=+m[1]*60+ +m[2],b=+m[3]*60+ +m[4];return((b-a)%720+720)%720}
-function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.b3=S.b3||{};if(!Array.isArray(S.b3t)){S.b3t=['','',''];for(const k of Object.keys(S.b3).map(Number).sort((a,b)=>b-a)){const a=S.b3[k]||[];if(a.some(x=>x&&x.t)){S.b3t=[0,1,2].map(i=>(a[i]&&a[i].t)||'');break}}}for(let i=0;i<3;i++)if(typeof S.b3t[i]!=='string')S.b3t[i]='';S.b3t.length=3}
+function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.b3=S.b3||{};if(!Array.isArray(S.b3t)){S.b3t=['','',''];for(const k of Object.keys(S.b3).map(Number).sort((a,b)=>b-a)){const a=S.b3[k]||[];if(a.some(x=>x&&x.t)){S.b3t=[0,1,2].map(i=>(a[i]&&a[i].t)||'');break}}}for(let i=0;i<3;i++)if(typeof S.b3t[i]!=='string')S.b3t[i]='';S.b3t.length=3;if(!Array.isArray(S.b3g))S.b3g=[0,0,0];for(let i=0;i<3;i++)if(!(S.b3g[i]>0))S.b3g[i]=0;S.b3g.length=3}
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const dateOf=n=>{const d=new Date(S.start+'T00:00:00');d.setDate(d.getDate()+n-1);return d};
 const fmt=(d,o)=>d.toLocaleDateString('en-GB',o);
@@ -447,7 +447,7 @@ function renderDash(c){
     const fx=tr1&&rw[tr1]>1&&FXS[CATS.indexOf(tr1)]||(two&&ws.r<1?'Move or simplify the '+sn(ws)+' slot.':'Keep your routine and aim for one more completed slot per day.');
     wrv='<div class="dod"><h3>Weekly review · Week '+((wk0-1)/7+1)+'</h3><div class="card wr">'+kv.map(x=>'<div class="wl"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>').join('')+I.map(s=>'<p class="np">• '+s+'</p>').join('')+'<p class="np"><b style="color:var(--ink)">Next week:</b> '+fx+'</p></div></div>'}
   let b3sec='';const b3i=[0,1,2].filter(i=>S.b3t[i]);
-  if(b3i.length&&ts)b3sec='<h3>Daily Big 3</h3><div class="card">'+b3i.map(i=>{let y=0,b=0,r=0;for(let d=1;d<=D;d++){if(b3x(d,i)){y++;r++;b=Math.max(b,r)}else r=0}return row(esc(S.b3t[i]),Math.min(1,y/ts),'<span>✔ '+y+' days</span><span>🔥 '+b3s(i,Math.max(1,el))+' streak</span><span>🏆 '+b+' best</span>')}).join('')+'</div>';
+  if(b3i.length)b3sec='<h3>Daily Big 3</h3><div class="card">'+b3i.map(i=>{let y=0,b=0,r=0;const tg=S.b3g[i]>0?S.b3g[i]:D;for(let d=1;d<=D;d++){if(b3x(d,i)){y++;r++;b=Math.max(b,r)}else r=0}return row(esc(S.b3t[i]),Math.min(1,y/tg),'<span>✔ '+y+'/'+tg+' days</span><span>🔥 '+b3s(i,Math.max(1,el))+' streak</span><span>🏆 '+b+' best</span>')}).join('')+'</div>';
   const tr=c.dt&&c.tracked?c.inv/(c.dt*c.tracked):0;
   const tstrip=c.dt?'<div class="card tstrip"><div><b>'+dur(c.dt)+'</b><span>Daily target</span></div><div><b>'+dur(c.inv)+'</b><span>Time invested</span></div><div><b>'+dur(Math.round(c.tracked?c.inv/c.tracked:0))+'</b><span>Avg / day</span></div><div><b>'+pct(tr)+'</b><span>Of target time</span></div></div>':'';
   let wk='';
@@ -531,7 +531,7 @@ async function pull(manual){
 addEventListener('online',()=>push());
 function renderSettings(){
   ensure();
-  $('b3d').textContent='same every day';$('b3e').innerHTML=[0,1,2].map(i=>'<input data-bt="'+i+'" placeholder="Task '+(i+1)+'" maxlength="80" value="'+esc(S.b3t[i]||'')+'" style="width:100%;margin-bottom:8px">').join('');$('start').value=S.start;$('cu').value=C.url||'';$('ck').value=C.key||'';$('days').value=S.days;
+  $('b3d').textContent='same every day';$('b3e').innerHTML=[0,1,2].map(i=>'<div class="gi2"><input data-bt="'+i+'" placeholder="Task '+(i+1)+'" maxlength="80" value="'+esc(S.b3t[i]||'')+'"><input data-bg="'+i+'" type="number" inputmode="numeric" min="1" placeholder="Days" value="'+(S.b3g[i]||'')+'" style="flex:0 0 78px"></div>').join('')+'<p class="np" style="margin:-4px 0 8px">Days = your target for each task. Leave empty to use all '+S.days+' days.</p>';$('start').value=S.start;$('cu').value=C.url||'';$('ck').value=C.key||'';$('days').value=S.days;
   $('gl').innerHTML=S.goals.map((n,g)=>'<div class="gi"><input data-g="'+g+'" value="'+esc(n)+'"><input class="tmi" type="number" inputmode="numeric" min="0" max="1440" data-t="'+g+'" value="'+(S.tgt[g]||0)+'" title="minutes per day"><button data-x="'+g+'">×</button></div><div class="gi2"><input data-s="'+g+'" placeholder="Subject" value="'+esc(S.sub[g])+'"><input data-k="'+g+'" placeholder="Task" value="'+esc(S.tk[g])+'"></div>').join('');
 }
 
@@ -543,7 +543,7 @@ $('list').addEventListener('click',e=>{const n=e.target.closest('.nt');if(!n)ret
   ta.onblur=()=>{setNote(d,g,ta.value);if(!ta.parentNode)return;ta.insertAdjacentHTML('afterend',ntHtml(d,g));ta.remove();renderDash(calc())}});
 $('list').addEventListener('change',e=>{const s=e.target.closest('.nc');if(!s)return;const k=cur+':'+s.dataset.c;if(s.value)S.cat[k]=s.value;else delete S.cat[k];save();renderDash(calc())});
 $('b3').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;const x=b3a()[+b.dataset.b];x.d=x.d?0:1;save();extras();renderDash(calc())};
-$('b3e').onchange=e=>{const i=e.target.dataset.bt;if(i===undefined)return;S.b3t[+i]=e.target.value.trim();save();render()};
+$('b3e').onchange=e=>{const d=e.target.dataset,i=d.bt!==undefined?d.bt:d.bg;if(i===undefined)return;if(d.bt!==undefined)S.b3t[+i]=e.target.value.trim();else{const v=parseInt(e.target.value);S.b3g[+i]=v>0?v:0}save();render()};
 $('rcv').onclick=e=>{if(!e.target.closest('#rcbt'))return;S.rec[cur]=S.rec[cur]?0:1;save();extras();renderDash(calc())};
 $('pv').onclick=()=>{cur--;render()};$('nx').onclick=()=>{cur++;render()};
 $('dt').onclick=()=>{cur=todayIdx();render()};
