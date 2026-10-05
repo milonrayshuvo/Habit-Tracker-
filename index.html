@@ -11,8 +11,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-:root{--bg:#fff;--ink:#111;--sub:#6b7280;--line:#eceef1;--ok:#16a34a;--bad:#dc2626;--soft:#f6f7f9}
-@media(prefers-color-scheme:dark){:root{--bg:#0d0d0f;--ink:#f2f2f3;--sub:#8b8f98;--line:#222428;--ok:#4ade80;--bad:#f87171;--soft:#17181b}}
+:root{--bg:#fff;--ink:#111;--sub:#6b7280;--line:#eceef1;--ok:#16a34a;--bad:#dc2626;--warn:#eab308;--soft:#f6f7f9}
+@media(prefers-color-scheme:dark){:root{--bg:#0d0d0f;--ink:#f2f2f3;--sub:#8b8f98;--line:#222428;--ok:#4ade80;--bad:#f87171;--warn:#facc15;--soft:#17181b}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Bengali",sans-serif}
 .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 20px env(safe-area-inset-bottom)}
@@ -35,6 +35,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 .ck{flex:none;width:30px;height:30px;border-radius:50%;border:1.8px solid var(--line);display:grid;place-items:center;font-size:15px;font-weight:700;color:#fff;transition:.15s}
 .ck.y{background:var(--ok);border-color:var(--ok)}
 .ck.n{background:var(--bad);border-color:var(--bad)}
+.ck.b{background:var(--warn);border-color:var(--warn);color:#422006}
 .row.done .nm{color:var(--sub)}
 nav{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 nav div{max-width:480px;margin:0 auto;display:flex}
@@ -102,7 +103,7 @@ input[type=number]{width:84px;text-align:right}
 body.pm .pmx{display:flex}
 html:has(body.pm){background:#fff}
 @page{size:A4;margin:10mm}
-body.pm{--bg:#fff;--ink:#111827;--sub:#6b7280;--line:#e5e7eb;--soft:#f5f7fa;--ok:#15803d;--bad:#b91c1c;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body.pm{--bg:#fff;--ink:#111827;--sub:#6b7280;--line:#e5e7eb;--soft:#f5f7fa;--ok:#15803d;--bad:#b91c1c;--warn:#ca8a04;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body.pm nav,body.pm #v1,body.pm #v3,body.pm .dh button{display:none!important}
 body.pm #v2{display:block!important}
 body.pm .app{max-width:none;min-height:0;padding:0;display:block}
@@ -133,7 +134,7 @@ body.pm .wg{grid-template-columns:repeat(6,1fr);gap:8px 10px}
 body.pm .wc .gs{font-size:8.5px}
 body.pm .foot{margin-top:10px;font-size:10px}
 @media print{.pmx{display:none!important}body.pm .app{zoom:1!important}
-body{--bg:#fff;--ink:#111827;--sub:#6b7280;--line:#e5e7eb;--soft:#f5f7fa;--ok:#15803d;--bad:#b91c1c;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{--bg:#fff;--ink:#111827;--sub:#6b7280;--line:#e5e7eb;--soft:#f5f7fa;--ok:#15803d;--bad:#b91c1c;--warn:#ca8a04;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body nav,body #v1,body #v3,body .dh button{display:none!important}
 body #v2{display:block!important}
 body .app{max-width:none;min-height:0;padding:0;display:block}
@@ -183,7 +184,7 @@ body .foot{margin-top:10px;font-size:10px}
 .hl div{height:14px;line-height:14px;margin-bottom:2px;font-size:10px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hr{flex:1;min-width:0}
 .hr svg{display:block;width:100%;height:calc(var(--n)*16px)}
-.hy{fill:var(--ok)}.hn{fill:var(--bad);opacity:.7}.he{fill:var(--line)}
+.hb{fill:var(--warn)}.lgd i.hy{background:var(--ok)}.lgd i.hn{background:var(--bad)}.lgd i.he{background:var(--line)}.lgd i.hb{background:var(--warn)}.hy{fill:var(--ok)}.hn{fill:var(--bad);opacity:.7}.he{fill:var(--line)}
 .ax{display:flex;justify-content:space-between;font-size:9px;color:var(--sub);margin-top:4px}
 .lgd{float:right;font-weight:500;letter-spacing:0;text-transform:none}
 .lgd i{display:inline-block;width:8px;height:8px;border-radius:2px;margin:0 3px 0 8px;vertical-align:middle}
@@ -266,6 +267,21 @@ body.pm.nm #v4{display:block!important}
 .b3r{width:100%;text-align:left}.b3t{font-size:15px;line-height:1.35}.b3r.d .b3t{color:var(--sub);text-decoration:line-through}
 .b3t{flex:1}.b3s{font-size:12px;color:var(--sub);font-weight:600}
 body.pm .hk{grid-template-columns:repeat(4,1fr)}
+.bkc{margin:0 0 18px;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--bg)}
+.bkh{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:600}
+.bkg{padding:6px 14px;border-radius:14px;font-size:15px;background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
+.bkr{display:flex;justify-content:space-between;align-items:center;margin:14px 0 12px;font-size:15px;color:var(--sub)}
+.bkr b{color:var(--ink);font-weight:500}
+.bkq{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bkq button{padding:14px 0;border:1px solid var(--line);border-radius:14px;font-size:17px;font-weight:500}
+.bkq button:active{background:var(--soft)}
+.bkx{display:block;margin:10px auto 0;color:var(--sub);font-size:12px;padding:4px 8px}
+.bkm{display:flex;gap:8px;margin-top:12px}
+.bkm input{flex:1;min-width:0;width:auto;text-align:left;border:1px solid var(--line);font-size:16px}
+.bkm select{border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:0 10px;font:inherit;font-size:15px}
+.bkm button{padding:0 16px;border-radius:10px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px}
+.bkb{display:block;width:100%;margin:-2px 0 12px;padding:14px 10px;border:1px solid var(--line);border-radius:14px;color:var(--sub);font-size:14.5px;text-align:center;line-height:1.35}
+.bkb.on{color:var(--ok)}
 </style>
 </head>
 <body>
@@ -275,7 +291,7 @@ body.pm .hk{grid-template-columns:repeat(4,1fr)}
     <div class="top"><button id="pv">‹</button><div><div id="dt"></div><small id="dn"></small></div><button id="nx">›</button></div>
     <div class="big"><b id="bn"></b><span id="bt"></span></div>
     <div class="line"><i id="bl"></i></div>
-    <div id="b3"></div><div id="list"></div><div id="rcv"></div>
+    <div id="bk"></div><div id="b3"></div><div id="list"></div><div id="rcv"></div>
   </section>
   <section id="v2" class="hide"><div id="dash"></div></section>
   <section id="v3" class="hide">
@@ -310,7 +326,18 @@ const $=id=>document.getElementById(id);
 const pct=x=>Math.round(x*100)+'%';
 const dur=m=>m>=60?Math.floor(m/60)+'h'+(m%60?' '+(m%60)+'m':''):m+'m';
 function autoMin(n){const m=String(n).match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);if(!m)return 0;const a=+m[1]*60+ +m[2],b=+m[3]*60+ +m[4];return((b-a)%720+720)%720}
-function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.b3=S.b3||{};if(!Array.isArray(S.b3t)){S.b3t=['','',''];for(const k of Object.keys(S.b3).map(Number).sort((a,b)=>b-a)){const a=S.b3[k]||[];if(a.some(x=>x&&x.t)){S.b3t=[0,1,2].map(i=>(a[i]&&a[i].t)||'');break}}}for(let i=0;i<3;i++)if(typeof S.b3t[i]!=='string')S.b3t[i]='';S.b3t.length=3;if(!Array.isArray(S.b3g))S.b3g=[0,0,0];for(let i=0;i<3;i++)if(!(S.b3g[i]>0))S.b3g[i]=0;S.b3g.length=3}
+function bank(upTo){
+  let earned=0,used=0;
+  for(let d=1;d<=upTo;d++)earned+=+S.ex[d]||0;
+  for(const k in S.pay){const p=k.split(':').map(Number);if(p[0]<=upTo&&cell(p[0],p[1])==='0')used+=+S.pay[k]||0}
+  return{bal:Math.max(0,earned-used),earned,used}
+}
+function bkHtml(d,g){
+  const t=S.tgt[g]||0;if(!t)return'';const p=+S.pay[d+':'+g]||0;
+  if(p)return '<button class="bkb on" data-p="'+g+'">✓ Bank থেকে '+dur(p)+' কাটা হয়েছে'+(p<t?' · বাকি '+dur(t-p):'')+' (ফেরত নিন)</button>';
+  return '<button class="bkb" data-p="'+g+'">Bank থেকে '+dur(t)+' কাটুন (জমা আছে '+dur(bank(d).bal)+')</button>'
+}
+function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.ex=S.ex||{};S.pay=S.pay||{};S.b3=S.b3||{};if(!Array.isArray(S.b3t)){S.b3t=['','',''];for(const k of Object.keys(S.b3).map(Number).sort((a,b)=>b-a)){const a=S.b3[k]||[];if(a.some(x=>x&&x.t)){S.b3t=[0,1,2].map(i=>(a[i]&&a[i].t)||'');break}}}for(let i=0;i<3;i++)if(typeof S.b3t[i]!=='string')S.b3t[i]='';S.b3t.length=3;if(!Array.isArray(S.b3g))S.b3g=[0,0,0];for(let i=0;i<3;i++)if(!(S.b3g[i]>0))S.b3g[i]=0;S.b3g.length=3}
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const dateOf=n=>{const d=new Date(S.start+'T00:00:00');d.setDate(d.getDate()+n-1);return d};
 const fmt=(d,o)=>d.toLocaleDateString('en-GB',o);
@@ -326,7 +353,9 @@ function extras(){
   const T=S.b3t,n=T.filter((s,i)=>s&&b3x(cur,i)).length;
   $('b3').innerHTML='<div class="b3"><div class="b3h"><b>Today’s Big 3</b><span>'+n+'/3</span></div>'+(T.some(Boolean)?T.map((s,i)=>{if(!s)return'';const d=b3x(cur,i),k=b3s(i,cur);return'<button class="b3r'+(d?' d':'')+'" data-b="'+i+'"><span class="ck'+(d?' y':'')+'">'+(d?'✓':'')+'</span><span class="b3t">'+esc(s)+'</span>'+(k?'<span class="b3s">🔥 '+k+'</span>':'')+'</button>'}).join(''):'<p class="np" style="margin:2px 0 4px">Add your 3 tasks in Settings.</p>')+'</div>';
   let m=0;for(let g=0;g<S.goals.length;g++)if(cell(cur,g)==='0')m+=S.tgt[g]||0;
-  const r=Math.min(90,m);$('rcv').innerHTML=r?'<button class="rcb'+(S.rec[cur]?' on':'')+'" id="rcbt">↻ Recovery (optional, max 90m): '+dur(r)+(S.rec[cur]?' · done ✓':'')+'</button>':''
+  const r=Math.min(90,m);$('rcv').innerHTML=r?'<button class="rcb'+(S.rec[cur]?' on':'')+'" id="rcbt">↻ Recovery (optional, max 90m): '+dur(r)+(S.rec[cur]?' · done ✓':'')+'</button>':'';
+  const bk=bank(cur),ex=+S.ex[cur]||0;
+  $('bk').innerHTML='<div class="bkc"><div class="bkh"><span>🏛️ Bonus bank</span><span class="bkg">'+dur(bk.bal)+' জমা</span></div><div class="bkr"><span>আজ এক্সট্রা পড়েছি</span><b>'+dur(ex)+'</b></div><div class="bkq"><button data-add="10">+10</button><button data-add="20">+20</button><button data-add="30">+30</button></div><div class="bkm"><input id="bkv" type="number" inputmode="decimal" min="0" step="any" placeholder="নিজে লিখুন, যেমন 45"><select id="bku"><option value="m">মিনিট</option><option value="h">ঘণ্টা</option></select><button data-man="1">যোগ</button></div>'+(ex?'<button class="bkx" data-clr="1">আজকের extra মুছুন</button>':'')+'</div>'
 }
 function rx(o,i){const n={};for(const k in o||{}){const p=k.split(':').map(Number);if(p[1]===i)continue;n[p[0]+':'+(p[1]>i?p[1]-1:p[1])]=o[k]}return n}
 function todayIdx(){const t=new Date();t.setHours(0,0,0,0);return Math.round((t-dateOf(1))/864e5)+1}
@@ -354,7 +383,7 @@ function render(){
   $('bn').textContent=c.dd[cur];$('bt').textContent='of '+G+' done'+(c.dt?' · '+dur(td)+' of '+dur(c.dt):'');
   $('bl').style.width=(G?c.dd[cur]/G*100:0)+'%';
   $('list').innerHTML=S.goals.map((n,g)=>{const v=cell(cur,g);
-    return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+(S.sub[g]||S.tk[g]?'<small>'+esc([S.sub[g],S.tk[g]].filter(Boolean).join(' → '))+'</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?'n':'')+'">'+(v==='1'?'✓':v==='0'?'✕':'')+'</span></button>'+(v==='0'?catHtml(cur,g)+ntHtml(cur,g):'')+'</div>'}).join('');
+    return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+(S.sub[g]||S.tk[g]?'<small>'+esc([S.sub[g],S.tk[g]].filter(Boolean).join(' → '))+'</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?(S.pay[cur+':'+g]>0?'b':'n'):'')+'">'+(v==='1'?'✓':v==='0'?(S.pay[cur+':'+g]>0?((+S.pay[cur+':'+g]>=(S.tgt[g]||0))?'✓':'½'):'✕'):'')+'</span></button>'+(v==='0'?bkHtml(cur,g)+catHtml(cur,g)+ntHtml(cur,g):'')+'</div>'}).join('');
   extras();renderDash(c);
 }
 
@@ -386,7 +415,7 @@ function renderDash(c){
   const trend='<svg viewBox="0 0 '+D+' 100" preserveAspectRatio="none"><line x1="0" x2="'+D+'" y1="50" y2="50" class="gl"/>'+bars+(pts.length>1?'<polyline points="'+pts.join(' ')+'" class="tl2"/>':'')+'</svg>';
   // heatmap
   let cells='';
-  for(let g=0;g<G;g++)for(let d=1;d<=D;d++){const v=cell(d,g);cells+='<rect x="'+(d-1)*8+'" y="'+g*16+'" width="7" height="14" rx="1.5" class="'+(v==='1'?'hy':v==='0'?'hn':'he')+'"/>'}
+  for(let g=0;g<G;g++)for(let d=1;d<=D;d++){const v=cell(d,g);cells+='<rect x="'+(d-1)*8+'" y="'+g*16+'" width="7" height="14" rx="1.5" class="'+(v==='1'?'hy':v==='0'?(S.pay[d+':'+g]>0?'hb':'hn'):'he')+'"/>'}
   const hm='<div class="hm" style="--n:'+G+'"><div class="hl">'+S.goals.map(n=>'<div>'+esc(n)+'</div>').join('')+'</div><div class="hr"><svg viewBox="0 0 '+D*8+' '+G*16+'" preserveAspectRatio="none">'+cells+'</svg><div class="ax"><span>Day 1</span><span>Day '+D+'</span></div></div></div>';
   const goals=S.goals.map((n,g)=>{const p=c.per[g],t=S.tgt[g]||0;return row(esc(n)+(t?'<em class="tg">'+dur(t)+'/day</em>':''),D?p.y/D:0,'<span>✔ '+p.y+' days</span>'+(t?'<span>⏱ '+dur(p.y*t)+'</span>':'')+'<span>🔥 '+p.c+' streak</span><span>🏆 '+p.b+' best</span>')}).join('');
   // day-over-day change
@@ -450,6 +479,7 @@ function renderDash(c){
   if(b3i.length)b3sec='<h3>Daily Big 3</h3><div class="card">'+b3i.map(i=>{let y=0,b=0,r=0;const tg=S.b3g[i]>0?S.b3g[i]:D;for(let d=1;d<=D;d++){if(b3x(d,i)){y++;r++;b=Math.max(b,r)}else r=0}return row(esc(S.b3t[i]),Math.min(1,y/tg),'<span>✔ '+y+'/'+tg+' days</span><span>🔥 '+b3s(i,Math.max(1,el))+' streak</span><span>🏆 '+b+' best</span>')}).join('')+'</div>';
   const tr=c.dt&&c.tracked?c.inv/(c.dt*c.tracked):0;
   const tstrip=c.dt?'<div class="card tstrip"><div><b>'+dur(c.dt)+'</b><span>Daily target</span></div><div><b>'+dur(c.inv)+'</b><span>Time invested</span></div><div><b>'+dur(Math.round(c.tracked?c.inv/c.tracked:0))+'</b><span>Avg / day</span></div><div><b>'+pct(tr)+'</b><span>Of target time</span></div></div>':'';
+  const bkT=bank(D),bkS=bkT.earned?'<div class="card tstrip" style="grid-template-columns:repeat(3,1fr)"><div><b>'+dur(bkT.bal)+'</b><span>Extra জমা</span></div><div><b>'+dur(bkT.used)+'</b><span>খরচ হয়েছে</span></div><div><b>'+Object.keys(S.ex).length+'</b><span>Extra দিন</span></div></div>':'';
   let wk='';
   for(let k=0;k*7<D;k++){const a=k*7+1,b=Math.min(k*7+7,D);let t=0;for(let x=a;x<=b;x++)t+=c.dd[x];const tt=G*(b-a+1),r=tt?t/tt:0;
     wk+='<div class="wc"><div class="gt"><span>Week '+(k+1)+'</span><b>'+pct(r)+'</b></div><div class="b2"><i style="width:'+Math.max(0,Math.min(1,r))*100+'%"></i></div><div class="gs">'+fmt(dateOf(a),dm)+' – '+fmt(dateOf(b),dm)+' · '+t+'/'+tt+'</div></div>'}
@@ -457,10 +487,10 @@ function renderDash(c){
    '<div class="dh"><div><h2>Habit Tracker</h2><p>Progress report · '+range+'</p></div><button id="pdf">⬇ PDF</button></div>'+
    '<div class="tl"><div class="line"><i style="width:'+(D?el/D*100:0)+'%"></i></div><div class="tls"><span>Day '+el+' of '+D+'</span><span>'+left+' days left</span></div></div>'+
    '<div class="card hero">'+ring(ov)+'<div class="hk"><div><b>'+c.tracked+'</b><span>Days tracked</span></div><div><b>'+pct(avg)+'</b><span>Daily average</span></div><div><b>'+perfect+'</b><span>Perfect days</span></div><div><b>'+streak+'d</b><span>Active streak</span></div></div></div>'+
-   b3sec+tstrip+ins+wrv+
+   b3sec+tstrip+bkS+ins+wrv+
    '<div class="r2"><div><h3>Consistency trend</h3><div class="card trend">'+trend+'<div class="lg"><i class="k1"></i> daily %  <i class="k2"></i> 7-day average</div></div></div><div><h3>By weekday</h3><div class="card chart">'+wcols+'</div></div></div>'+
    dod+nts+
-   '<h3>Day-by-day consistency <span class="lgd"><i class="hy"></i>done <i class="hn"></i>missed <i class="he"></i>pending</span></h3><div class="card">'+hm+'</div>'+
+   '<h3>Day-by-day consistency <span class="lgd"><i class="hy"></i>done <i class="hb"></i>banked <i class="hn"></i>missed <i class="he"></i>pending</span></h3><div class="card">'+hm+'</div>'+
    '<h3>Goal performance</h3><div class="card">'+goals+'</div>'+subs+rsn+
    '<h3>Weekly progress</h3><div class="card"><div class="wg">'+wk+'</div></div>'+
    '<p class="foot">Progress = completed check-ins ÷ scheduled check-ins · Active streak = consecutive days with ≥50% completion · Time invested = target time of completed goals · Generated '+gen+'</p>';
@@ -536,7 +566,7 @@ function renderSettings(){
 }
 
 $('list').onclick=e=>{const b=e.target.closest('.row');if(!b)return;const g=+b.dataset.g,v=cell(cur,g);
-  setCell(cur,g,v==='-'?'1':v==='1'?'0':'-');save();render();if(navigator.vibrate)navigator.vibrate(8)};
+  const nv=v==='-'?'1':v==='1'?'0':'-';setCell(cur,g,nv);if(nv!=='0')delete S.pay[cur+':'+g];save();render();if(navigator.vibrate)navigator.vibrate(8)};
 $('list').addEventListener('click',e=>{const n=e.target.closest('.nt');if(!n)return;const g=+n.dataset.n,d=cur;
   const ta=document.createElement('textarea');ta.className='nti';ta.rows=2;ta.maxLength=500;ta.placeholder='কেন হয়নি? (যেমন: অসুস্থ, ক্লাস, ঘুম…)';ta.value=(S.notes||{})[d+':'+g]||'';
   n.replaceWith(ta);ta.focus();
@@ -545,6 +575,15 @@ $('list').addEventListener('change',e=>{const s=e.target.closest('.nc');if(!s)re
 $('b3').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;const x=b3a()[+b.dataset.b];x.d=x.d?0:1;save();extras();renderDash(calc())};
 $('b3e').onchange=e=>{const d=e.target.dataset,i=d.bt!==undefined?d.bt:d.bg;if(i===undefined)return;if(d.bt!==undefined)S.b3t[+i]=e.target.value.trim();else{const v=parseInt(e.target.value);S.b3g[+i]=v>0?v:0}save();render()};
 $('rcv').onclick=e=>{if(!e.target.closest('#rcbt'))return;S.rec[cur]=S.rec[cur]?0:1;save();extras();renderDash(calc())};
+$('bk').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.add)S.ex[cur]=Math.min(1440,(+S.ex[cur]||0)+(+b.dataset.add));
+  else if(b.dataset.man){const v=parseFloat($('bkv').value),m=Math.round($('bku').value==='h'?v*60:v);if(!(m>0)){alert('সঠিক সংখ্যা লিখুন');return}S.ex[cur]=Math.min(1440,(+S.ex[cur]||0)+m)}
+  else if(b.dataset.clr)delete S.ex[cur];else return;
+  save();render()};
+$('list').addEventListener('click',e=>{const b=e.target.closest('.bkb');if(!b)return;const g=+b.dataset.p,k=cur+':'+g;
+  if(S.pay[k])delete S.pay[k];
+  else{const t=S.tgt[g]||0,a=Math.min(t,bank(cur).bal);if(a<=0){alert('Bank-এ জমা নেই');return}S.pay[k]=a}
+  save();render()});
 $('pv').onclick=()=>{cur--;render()};$('nx').onclick=()=>{cur++;render()};
 $('dt').onclick=()=>{cur=todayIdx();render()};
 let x0=null;const L=$('v1');
@@ -557,11 +596,11 @@ $('gl').onchange=e=>{const sk=e.target.dataset.s!==undefined?'sub':e.target.data
   const t=e.target.dataset.t;if(t!==undefined){S.tgt[+t]=Math.max(0,Math.min(1440,+e.target.value||0));save();render();return}const g=e.target.dataset.g;if(g!==undefined){S.goals[+g]=e.target.value.trim()||'Goal';save();render()}};
 $('gl').onclick=e=>{const g=e.target.dataset.x;if(g===undefined||S.goals.length<2)return;
   if(!confirm('এই goal ও তার ডেটা মুছবেন?'))return;
-  const i=+g;S.goals.splice(i,1);S.tgt.splice(i,1);S.sub.splice(i,1);S.tk.splice(i,1);S.notes=rx(S.notes,i);S.cat=rx(S.cat,i);for(const k in S.log){const a=S.log[k].split('');a.splice(i,1);S.log[k]=a.join('')}
+  const i=+g;S.goals.splice(i,1);S.tgt.splice(i,1);S.sub.splice(i,1);S.tk.splice(i,1);S.notes=rx(S.notes,i);S.cat=rx(S.cat,i);S.pay=rx(S.pay,i);for(const k in S.log){const a=S.log[k].split('');a.splice(i,1);S.log[k]=a.join('')}
   save();renderSettings();render()};
 $('addg').onclick=()=>{if(S.goals.length<12){S.goals.push('New goal');save();renderSettings();render()}};
 function chk(){let h=true;try{h=!localStorage.getItem(KEY+'_prev')}catch(e){}$('undo').classList.toggle('hide',h)}
-$('rst').onclick=()=>{if(confirm('সব ✓/✕ এন্ট্রি মুছবেন? Goal ও তারিখ থাকবে। পরে Undo করা যাবে।')){try{localStorage.setItem(KEY+'_prev',JSON.stringify(S))}catch(e){}S.log={};S.notes={};S.cat={};S.rec={};save();render();chk()}};
+$('rst').onclick=()=>{if(confirm('সব ✓/✕ এন্ট্রি মুছবেন? Goal ও তারিখ থাকবে। পরে Undo করা যাবে।')){try{localStorage.setItem(KEY+'_prev',JSON.stringify(S))}catch(e){}S.log={};S.notes={};S.cat={};S.rec={};S.ex={};S.pay={};save();render();chk()}};
 $('undo').onclick=()=>{try{const x=JSON.parse(localStorage.getItem(KEY+'_prev'));if(x){S=x;save();localStorage.removeItem(KEY+'_prev');render();renderSettings();chk()}}catch(e){}};
 $('exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='habit_backup.json';a.click()};
 $('imp').onclick=()=>$('file').click();
