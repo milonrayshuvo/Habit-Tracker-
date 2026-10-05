@@ -267,7 +267,7 @@ body.pm.nm #v4{display:block!important}
 .b3r{width:100%;text-align:left}.b3t{font-size:15px;line-height:1.35}.b3r.d .b3t{color:var(--sub);text-decoration:line-through}
 .b3t{flex:1}.b3s{font-size:12px;color:var(--sub);font-weight:600}
 body.pm .hk{grid-template-columns:repeat(4,1fr)}
-.bkc{margin:0 0 18px;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--bg)}
+.bkc{margin:16px 0 18px;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--bg)}
 .bkh{display:flex;justify-content:space-between;align-items:center;font-size:17px;font-weight:600}
 .bkg{padding:6px 14px;border-radius:14px;font-size:15px;background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
 .bkr{display:flex;justify-content:space-between;align-items:center;margin:14px 0 12px;font-size:15px;color:var(--sub)}
@@ -291,7 +291,7 @@ body.pm .hk{grid-template-columns:repeat(4,1fr)}
     <div class="top"><button id="pv">‹</button><div><div id="dt"></div><small id="dn"></small></div><button id="nx">›</button></div>
     <div class="big"><b id="bn"></b><span id="bt"></span></div>
     <div class="line"><i id="bl"></i></div>
-    <div id="bk"></div><div id="b3"></div><div id="list"></div><div id="rcv"></div>
+    <div id="b3"></div><div id="list"></div><div id="rcv"></div><div id="bk"></div>
   </section>
   <section id="v2" class="hide"><div id="dash"></div></section>
   <section id="v3" class="hide">
@@ -334,8 +334,8 @@ function bank(upTo){
 }
 function bkHtml(d,g){
   const t=S.tgt[g]||0;if(!t)return'';const p=+S.pay[d+':'+g]||0;
-  if(p)return '<button class="bkb on" data-p="'+g+'">✓ Bank থেকে '+dur(p)+' কাটা হয়েছে'+(p<t?' · বাকি '+dur(t-p):'')+' (ফেরত নিন)</button>';
-  return '<button class="bkb" data-p="'+g+'">Bank থেকে '+dur(t)+' কাটুন (জমা আছে '+dur(bank(d).bal)+')</button>'
+  if(p)return '<button class="bkb on" data-p="'+g+'">✓ '+dur(p)+' used from bank'+(p<t?' · '+dur(t-p)+' still missed':'')+' (tap to undo)</button>';
+  return '<button class="bkb" data-p="'+g+'">Use '+dur(t)+' from bank ('+dur(bank(d).bal)+' available)</button>'
 }
 function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.ex=S.ex||{};S.pay=S.pay||{};S.b3=S.b3||{};if(!Array.isArray(S.b3t)){S.b3t=['','',''];for(const k of Object.keys(S.b3).map(Number).sort((a,b)=>b-a)){const a=S.b3[k]||[];if(a.some(x=>x&&x.t)){S.b3t=[0,1,2].map(i=>(a[i]&&a[i].t)||'');break}}}for(let i=0;i<3;i++)if(typeof S.b3t[i]!=='string')S.b3t[i]='';S.b3t.length=3;if(!Array.isArray(S.b3g))S.b3g=[0,0,0];for(let i=0;i<3;i++)if(!(S.b3g[i]>0))S.b3g[i]=0;S.b3g.length=3}
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
@@ -355,7 +355,7 @@ function extras(){
   let m=0;for(let g=0;g<S.goals.length;g++)if(cell(cur,g)==='0')m+=S.tgt[g]||0;
   const r=Math.min(90,m);$('rcv').innerHTML=r?'<button class="rcb'+(S.rec[cur]?' on':'')+'" id="rcbt">↻ Recovery (optional, max 90m): '+dur(r)+(S.rec[cur]?' · done ✓':'')+'</button>':'';
   const bk=bank(cur),ex=+S.ex[cur]||0;
-  $('bk').innerHTML='<div class="bkc"><div class="bkh"><span>🏛️ Bonus bank</span><span class="bkg">'+dur(bk.bal)+' জমা</span></div><div class="bkr"><span>আজ এক্সট্রা পড়েছি</span><b>'+dur(ex)+'</b></div><div class="bkq"><button data-add="10">+10</button><button data-add="20">+20</button><button data-add="30">+30</button></div><div class="bkm"><input id="bkv" type="number" inputmode="decimal" min="0" step="any" placeholder="নিজে লিখুন, যেমন 45"><select id="bku"><option value="m">মিনিট</option><option value="h">ঘণ্টা</option></select><button data-man="1">যোগ</button></div>'+(ex?'<button class="bkx" data-clr="1">আজকের extra মুছুন</button>':'')+'</div>'
+  $('bk').innerHTML='<div class="bkc"><div class="bkh"><span>🏛️ Bonus bank</span><span class="bkg">'+dur(bk.bal)+' banked</span></div><div class="bkr"><span>Extra studied today</span><b>'+dur(ex)+'</b></div><div class="bkq"><button data-add="10">+10</button><button data-add="20">+20</button><button data-add="30">+30</button></div><div class="bkm"><input id="bkv" type="number" inputmode="decimal" min="0" step="any" placeholder="Custom, e.g. 45"><select id="bku"><option value="m">Minutes</option><option value="h">Hours</option></select><button data-man="1">Add</button></div>'+(ex?'<button class="bkx" data-clr="1">Clear extra for today</button>':'')+'</div>'
 }
 function rx(o,i){const n={};for(const k in o||{}){const p=k.split(':').map(Number);if(p[1]===i)continue;n[p[0]+':'+(p[1]>i?p[1]-1:p[1])]=o[k]}return n}
 function todayIdx(){const t=new Date();t.setHours(0,0,0,0);return Math.round((t-dateOf(1))/864e5)+1}
@@ -479,7 +479,7 @@ function renderDash(c){
   if(b3i.length)b3sec='<h3>Daily Big 3</h3><div class="card">'+b3i.map(i=>{let y=0,b=0,r=0;const tg=S.b3g[i]>0?S.b3g[i]:D;for(let d=1;d<=D;d++){if(b3x(d,i)){y++;r++;b=Math.max(b,r)}else r=0}return row(esc(S.b3t[i]),Math.min(1,y/tg),'<span>✔ '+y+'/'+tg+' days</span><span>🔥 '+b3s(i,Math.max(1,el))+' streak</span><span>🏆 '+b+' best</span>')}).join('')+'</div>';
   const tr=c.dt&&c.tracked?c.inv/(c.dt*c.tracked):0;
   const tstrip=c.dt?'<div class="card tstrip"><div><b>'+dur(c.dt)+'</b><span>Daily target</span></div><div><b>'+dur(c.inv)+'</b><span>Time invested</span></div><div><b>'+dur(Math.round(c.tracked?c.inv/c.tracked:0))+'</b><span>Avg / day</span></div><div><b>'+pct(tr)+'</b><span>Of target time</span></div></div>':'';
-  const bkT=bank(D),bkS=bkT.earned?'<div class="card tstrip" style="grid-template-columns:repeat(3,1fr)"><div><b>'+dur(bkT.bal)+'</b><span>Extra জমা</span></div><div><b>'+dur(bkT.used)+'</b><span>খরচ হয়েছে</span></div><div><b>'+Object.keys(S.ex).length+'</b><span>Extra দিন</span></div></div>':'';
+  const bkT=bank(D),bkS=bkT.earned?'<div class="card tstrip" style="grid-template-columns:repeat(3,1fr)"><div><b>'+dur(bkT.bal)+'</b><span>Extra banked</span></div><div><b>'+dur(bkT.used)+'</b><span>Used</span></div><div><b>'+Object.keys(S.ex).length+'</b><span>Extra days</span></div></div>':'';
   let wk='';
   for(let k=0;k*7<D;k++){const a=k*7+1,b=Math.min(k*7+7,D);let t=0;for(let x=a;x<=b;x++)t+=c.dd[x];const tt=G*(b-a+1),r=tt?t/tt:0;
     wk+='<div class="wc"><div class="gt"><span>Week '+(k+1)+'</span><b>'+pct(r)+'</b></div><div class="b2"><i style="width:'+Math.max(0,Math.min(1,r))*100+'%"></i></div><div class="gs">'+fmt(dateOf(a),dm)+' – '+fmt(dateOf(b),dm)+' · '+t+'/'+tt+'</div></div>'}
@@ -577,12 +577,12 @@ $('b3e').onchange=e=>{const d=e.target.dataset,i=d.bt!==undefined?d.bt:d.bg;if(i
 $('rcv').onclick=e=>{if(!e.target.closest('#rcbt'))return;S.rec[cur]=S.rec[cur]?0:1;save();extras();renderDash(calc())};
 $('bk').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.add)S.ex[cur]=Math.min(1440,(+S.ex[cur]||0)+(+b.dataset.add));
-  else if(b.dataset.man){const v=parseFloat($('bkv').value),m=Math.round($('bku').value==='h'?v*60:v);if(!(m>0)){alert('সঠিক সংখ্যা লিখুন');return}S.ex[cur]=Math.min(1440,(+S.ex[cur]||0)+m)}
+  else if(b.dataset.man){const v=parseFloat($('bkv').value),m=Math.round($('bku').value==='h'?v*60:v);if(!(m>0)){alert('Enter a valid number');return}S.ex[cur]=Math.min(1440,(+S.ex[cur]||0)+m)}
   else if(b.dataset.clr)delete S.ex[cur];else return;
   save();render()};
 $('list').addEventListener('click',e=>{const b=e.target.closest('.bkb');if(!b)return;const g=+b.dataset.p,k=cur+':'+g;
   if(S.pay[k])delete S.pay[k];
-  else{const t=S.tgt[g]||0,a=Math.min(t,bank(cur).bal);if(a<=0){alert('Bank-এ জমা নেই');return}S.pay[k]=a}
+  else{const t=S.tgt[g]||0,a=Math.min(t,bank(cur).bal);if(a<=0){alert('Bank is empty');return}S.pay[k]=a}
   save();render()});
 $('pv').onclick=()=>{cur--;render()};$('nx').onclick=()=>{cur++;render()};
 $('dt').onclick=()=>{cur=todayIdx();render()};
