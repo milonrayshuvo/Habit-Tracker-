@@ -255,6 +255,14 @@ body.pm.nm #v4{display:block!important}
 #rep .ri{display:grid;grid-template-columns:190px 1fr;gap:12px;padding:5px 0;font-size:12px}
 #rep .rg{font-weight:600}
 #rep .rt{white-space:pre-wrap;word-break:break-word;line-height:1.5}
+.nc{margin:-4px 0 8px;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font:inherit;font-size:13px}
+.b3{margin:0 0 14px;padding:10px 14px;background:var(--soft);border-radius:14px}
+.b3h{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}.b3h span{color:var(--sub);font-weight:600}
+.b3r{display:flex;align-items:center;gap:10px;padding:4px 0}.b3r .ck{width:24px;height:24px;font-size:13px}
+.b3r input{flex:1;min-width:0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:15px;padding:6px 0;outline:none}
+.rcb{display:block;width:100%;margin:12px 0 0;padding:12px;border-radius:12px;background:var(--soft);color:var(--sub);font-size:13px;font-weight:600}.rcb.on{color:var(--ok)}
+.gi2{display:flex;gap:8px;margin:-2px 0 12px}.gi2 input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font:inherit;font-size:14px}
+.wl{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.wl span{color:var(--sub)}.wl b{text-align:right}.wr .np{margin:8px 0 0}
 </style>
 </head>
 <body>
@@ -264,7 +272,7 @@ body.pm.nm #v4{display:block!important}
     <div class="top"><button id="pv">‹</button><div><div id="dt"></div><small id="dn"></small></div><button id="nx">›</button></div>
     <div class="big"><b id="bn"></b><span id="bt"></span></div>
     <div class="line"><i id="bl"></i></div>
-    <div id="list"></div>
+    <div id="b3"></div><div id="list"></div><div id="rcv"></div>
   </section>
   <section id="v2" class="hide"><div id="dash"></div></section>
   <section id="v3" class="hide">
@@ -291,13 +299,14 @@ body.pm.nm #v4{display:block!important}
 const KEY='habit_tracker_v1';
 const SAMPLE={start:'2026-09-28',days:120,tgt:[60,60,60,60,60,60,0,0],goals:["📚 8:00–9:00 → AM","🎯 9:00–10:00 → AM","✒️ 11:30–12:30 → AM","📝 8:00–9:00 → PM","📖 9:00–10:00 → PM","📙 11:00–12:00 → PM","📝 Review Days","✊ Hold On"],log:{1:"01110011",2:"00010001",3:"01111001",4:"11100000",5:"01111000",6:"101----0"}};
 let S=load(),cur=1,view=1,dodAll=false,notesAll=false;
+const CATS=['Sleep','Phone/Distraction','Social/Chatting','Health/Appointment','Family/Work','Low Energy','Poor Planning','Emergency','Other'],FXS=['Fix your sleep and wake time so the first slot starts fresh.','Keep the phone out of reach during study slots.','Set a chat-free window before your hardest slot.','Plan lighter slots around appointments.','Agree on protected study hours with family or work.','Put hard subjects in your higher-energy slots.','Decide tomorrow\'s subject and task the night before.','Keep one flexible slot as an emergency buffer.','Review what got in the way and adjust one slot.'];
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.goals)return s}catch(e){}return JSON.parse(JSON.stringify(SAMPLE))}
 function save(){S.upd=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}sched()}
 const $=id=>document.getElementById(id);
 const pct=x=>Math.round(x*100)+'%';
 const dur=m=>m>=60?Math.floor(m/60)+'h'+(m%60?' '+(m%60)+'m':''):m+'m';
 function autoMin(n){const m=String(n).match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);if(!m)return 0;const a=+m[1]*60+ +m[2],b=+m[3]*60+ +m[4];return((b-a)%720+720)%720}
-function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length}
+function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.b3=S.b3||{}}
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const dateOf=n=>{const d=new Date(S.start+'T00:00:00');d.setDate(d.getDate()+n-1);return d};
 const fmt=(d,o)=>d.toLocaleDateString('en-GB',o);
@@ -305,6 +314,15 @@ const cell=(d,g)=>(S.log[d]||'')[g]||'-';
 function setCell(d,g,v){const a=(S.log[d]||'').padEnd(S.goals.length,'-').split('');a[g]=v;S.log[d]=a.join('')}
 function setNote(d,g,v){v=String(v||'').trim().slice(0,500);const k=d+':'+g;if(v){(S.notes=S.notes||{})[k]=v}else if(S.notes)delete S.notes[k];save()}
 function ntHtml(d,g){const t=(S.notes||{})[d+':'+g];return '<button class="nt'+(t?' has':'')+'" data-n="'+g+'">'+(t?'📝 '+esc(t):'＋ কেন হয়নি? নোট লিখুন')+'</button>'}
+function catHtml(d,g){const v=S.cat[d+':'+g]||'';return '<select class="nc" data-c="'+g+'"><option value="">Reason…</option>'+CATS.map(c=>'<option'+(c===v?' selected':'')+'>'+c+'</option>').join('')+'</select>'}
+function b3a(){return S.b3[cur]||(S.b3[cur]=[{t:'',d:0},{t:'',d:0},{t:'',d:0}])}
+function extras(){
+  const b=(S.b3[cur]||[]).concat([{},{},{}]).slice(0,3),n=b.filter(x=>x.d).length;
+  $('b3').innerHTML='<div class="b3"><div class="b3h"><b>Today’s Big 3</b><span>'+n+'/3</span></div>'+b.map((x,i)=>'<div class="b3r"><button class="ck'+(x.d?' y':'')+'" data-b="'+i+'">'+(x.d?'✓':'')+'</button><input data-bt="'+i+'" value="'+esc(x.t||'')+'" placeholder="Task '+(i+1)+'" maxlength="80"></div>').join('')+'</div>';
+  let m=0;for(let g=0;g<S.goals.length;g++)if(cell(cur,g)==='0')m+=S.tgt[g]||0;
+  const r=Math.min(90,m);$('rcv').innerHTML=r?'<button class="rcb'+(S.rec[cur]?' on':'')+'" id="rcbt">↻ Recovery (optional, max 90m): '+dur(r)+(S.rec[cur]?' · done ✓':'')+'</button>':''
+}
+function rx(o,i){const n={};for(const k in o||{}){const p=k.split(':').map(Number);if(p[1]===i)continue;n[p[0]+':'+(p[1]>i?p[1]-1:p[1])]=o[k]}return n}
 function todayIdx(){const t=new Date();t.setHours(0,0,0,0);return Math.round((t-dateOf(1))/864e5)+1}
 function clampDay(){cur=Math.max(1,Math.min(S.days,cur))}
 
@@ -330,8 +348,8 @@ function render(){
   $('bn').textContent=c.dd[cur];$('bt').textContent='of '+G+' done'+(c.dt?' · '+dur(td)+' of '+dur(c.dt):'');
   $('bl').style.width=(G?c.dd[cur]/G*100:0)+'%';
   $('list').innerHTML=S.goals.map((n,g)=>{const v=cell(cur,g);
-    return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?'n':'')+'">'+(v==='1'?'✓':v==='0'?'✕':'')+'</span></button>'+(v==='0'?ntHtml(cur,g):'')+'</div>'}).join('');
-  renderDash(c);
+    return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+(S.sub[g]||S.tk[g]?'<small>'+esc([S.sub[g],S.tk[g]].filter(Boolean).join(' → '))+'</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?'n':'')+'">'+(v==='1'?'✓':v==='0'?'✕':'')+'</span></button>'+(v==='0'?catHtml(cur,g)+ntHtml(cur,g):'')+'</div>'}).join('');
+  extras();renderDash(c);
 }
 
 function ring(p){const C=2*Math.PI*54;return '<svg viewBox="0 0 130 130" class="ring"><circle cx="65" cy="65" r="54" class="rt"/><circle cx="65" cy="65" r="54" class="rf" stroke-dasharray="'+(C*Math.max(0,Math.min(1,p))).toFixed(1)+' '+C.toFixed(1)+'" transform="rotate(-90 65 65)"/><text x="65" y="68" text-anchor="middle" class="rn">'+Math.round(p*100)+'<tspan class="rp">%</tspan></text><text x="65" y="87" text-anchor="middle" class="rl">COMPLETION</text></svg>'}
@@ -396,6 +414,32 @@ function renderDash(c){
       (nl.length>6?'<button class="dodb" id="ntb">'+(notesAll?'Show less':'Show all '+nl.length+' notes')+'</button>':''):
       '<p class="np" style="padding:12px 0 4px">Today ট্যাবে ✕ দেওয়া goal-এর নিচে কারণ লিখলে এখানে জমা হবে।</p>')+
     '</div></div>':'';
+  const ts=c.tracked,sm={};
+  S.goals.forEach((n,g)=>{const s=S.sub[g];if(!s)return;const o=sm[s]||(sm[s]={y:0,n:0,m:0});o.y+=c.per[g].y;o.n++;o.m+=c.per[g].y*(S.tgt[g]||0)});
+  const subs=Object.keys(sm).length&&ts?'<div class="dod"><h3>Subject performance</h3><div class="card">'+Object.keys(sm).map(k=>row(esc(k),sm[k].y/(sm[k].n*ts),'<span>✔ '+sm[k].y+'/'+sm[k].n*ts+'</span><span>⏱ '+dur(sm[k].m)+'</span>')).join('')+'</div></div>':'';
+  const rc={};for(const k in S.cat){const p=k.split(':').map(Number);if(cell(p[0],p[1])==='0')rc[S.cat[k]]=(rc[S.cat[k]]||0)+1}
+  const rl=Object.keys(rc).sort((a,b)=>rc[b]-rc[a]),rtt=rl.reduce((s,k)=>s+rc[k],0);
+  const rsn=rl.length?'<div class="dod"><h3>Top missed reasons</h3><div class="card">'+rl.map(k=>row(esc(k),rc[k]/rtt,'<span>'+rc[k]+' missed</span>')).join('')+'</div></div>':'';
+  let wrv='';const wd=[],wk0=Math.floor(((last||1)-1)/7)*7+1,wk1=Math.min(wk0+6,D);
+  for(let d=wk0;d<=wk1;d++)if(trk[d])wd.push(d);
+  if(wd.length){
+    const N=wd.length,mx=(a,f)=>a.reduce((x,y)=>f(y)>f(x)?y:x),mn=(a,f)=>a.reduce((x,y)=>f(y)<f(x)?y:x),all=S.goals.map((n,g)=>g),sg=all.filter(g=>S.tgt[g]>0);
+    const yc=g=>wd.filter(d=>cell(d,g)==='1').length;
+    const slots=(sg.length?sg:all).map(g=>({g,r:yc(g)/N})),bs=mx(slots,o=>o.r),ws=mn(slots,o=>o.r),two=slots.length>1&&bs.r!==ws.r;
+    const dy=wd.map(d=>({d,r:pc[d]})),bd=mx(dy,o=>o.r),wy=mn(dy,o=>o.r),tw=dy.length>1&&bd.r!==wy.r;
+    const rw={};for(const k in S.cat){const p=k.split(':').map(Number);if(p[0]>=wk0&&p[0]<=wk1&&cell(p[0],p[1])==='0')rw[S.cat[k]]=(rw[S.cat[k]]||0)+1}
+    const rk=Object.keys(rw).sort((a,b)=>rw[b]-rw[a]),tr1=rk[0];
+    const sw=Object.keys(sm).map(k=>{const gs=all.filter(g=>S.sub[g]===k);return{k,r:gs.reduce((s,g)=>s+yc(g),0)/(gs.length*N)}});
+    const bsb=sw.length?mx(sw,o=>o.r):0,wsb=sw.length?mn(sw,o=>o.r):0,t2=sw.length>1&&bsb.r!==wsb.r;
+    let tot=0,tmw=0,b3d=0,b3t=0;wd.forEach(d=>{tot+=c.dd[d];tmw+=tmin(d);(S.b3[d]||[]).forEach(x=>{if(x.t){b3t++;if(x.d)b3d++}})});
+    const sn=o=>esc(S.goals[o.g]);
+    const kv=[['Completion',pct(tot/(G*N))+' · '+tot+'/'+G*N],['Study time',dur(tmw)],['Strongest slot',two?sn(bs)+' · '+pct(bs.r):''],['Weakest slot',two?sn(ws)+' · '+pct(ws.r):''],['Best weekday',tw?fmt(dateOf(bd.d),{weekday:'long'}):''],['Worst weekday',tw?fmt(dateOf(wy.d),{weekday:'long'}):''],['Top missed reason',tr1?esc(tr1)+' · '+rw[tr1]:''],['Best subject',t2?esc(bsb.k)+' · '+pct(bsb.r):''],['Needs attention',t2?esc(wsb.k)+' · '+pct(wsb.r):''],['Big 3',b3t?b3d+'/'+b3t+' done':'']].filter(x=>x[1]);
+    const I=[];
+    if(two&&ws.r<1)I.push(sn(ws)+' is your weakest slot. Consider moving difficult study tasks earlier.');
+    if(tr1)I.push(esc(tr1)+' caused '+rw[tr1]+' missed session'+(rw[tr1]>1?'s':'')+' this week.');
+    if(t2)I.push(esc(bsb.k)+' is your strongest subject this week; '+esc(wsb.k)+' needs the most attention.');
+    const fx=tr1&&rw[tr1]>1&&FXS[CATS.indexOf(tr1)]||(two&&ws.r<1?'Move or simplify the '+sn(ws)+' slot.':'Keep your routine and aim for one more completed slot per day.');
+    wrv='<div class="dod"><h3>Weekly review · Week '+((wk0-1)/7+1)+'</h3><div class="card wr">'+kv.map(x=>'<div class="wl"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>').join('')+I.map(s=>'<p class="np">• '+s+'</p>').join('')+'<p class="np"><b style="color:var(--ink)">Next week:</b> '+fx+'</p></div></div>'}
   const tr=c.dt&&c.tracked?c.inv/(c.dt*c.tracked):0;
   const tstrip=c.dt?'<div class="card tstrip"><div><b>'+dur(c.dt)+'</b><span>Daily target</span></div><div><b>'+dur(c.inv)+'</b><span>Time invested</span></div><div><b>'+dur(Math.round(c.tracked?c.inv/c.tracked:0))+'</b><span>Avg / day</span></div><div><b>'+pct(tr)+'</b><span>Of target time</span></div></div>':'';
   let wk='';
@@ -405,11 +449,11 @@ function renderDash(c){
    '<div class="dh"><div><h2>Habit Tracker</h2><p>Progress report · '+range+'</p></div><button id="pdf">⬇ PDF</button></div>'+
    '<div class="tl"><div class="line"><i style="width:'+(D?el/D*100:0)+'%"></i></div><div class="tls"><span>Day '+el+' of '+D+'</span><span>'+left+' days left</span></div></div>'+
    '<div class="card hero">'+ring(ov)+'<div class="hk"><div><b>'+c.tot+'</b><span>Check-ins done</span></div><div><b>'+pend+'</b><span>Pending</span></div><div><b>'+c.tracked+'</b><span>Days tracked</span></div><div><b>'+pct(avg)+'</b><span>Daily average</span></div><div><b>'+perfect+'</b><span>Perfect days</span></div><div><b>'+streak+'d</b><span>Active streak</span></div></div></div>'+
-   tstrip+ins+
+   tstrip+ins+wrv+
    '<div class="r2"><div><h3>Consistency trend</h3><div class="card trend">'+trend+'<div class="lg"><i class="k1"></i> daily %  <i class="k2"></i> 7-day average</div></div></div><div><h3>By weekday</h3><div class="card chart">'+wcols+'</div></div></div>'+
    dod+nts+
    '<h3>Day-by-day consistency <span class="lgd"><i class="hy"></i>done <i class="hn"></i>missed <i class="he"></i>pending</span></h3><div class="card">'+hm+'</div>'+
-   '<h3>Goal performance</h3><div class="card">'+goals+'</div>'+
+   '<h3>Goal performance</h3><div class="card">'+goals+'</div>'+subs+rsn+
    '<h3>Weekly progress</h3><div class="card"><div class="wg">'+wk+'</div></div>'+
    '<p class="foot">Progress = completed check-ins ÷ scheduled check-ins · Active streak = consecutive days with ≥50% completion · Time invested = target time of completed goals · Generated '+gen+'</p>';
   $('pdf').onclick=pmOn;
@@ -480,7 +524,7 @@ addEventListener('online',()=>push());
 function renderSettings(){
   ensure();
   $('start').value=S.start;$('cu').value=C.url||'';$('ck').value=C.key||'';$('days').value=S.days;
-  $('gl').innerHTML=S.goals.map((n,g)=>'<div class="gi"><input data-g="'+g+'" value="'+esc(n)+'"><input class="tmi" type="number" inputmode="numeric" min="0" max="1440" data-t="'+g+'" value="'+(S.tgt[g]||0)+'" title="minutes per day"><button data-x="'+g+'">×</button></div>').join('');
+  $('gl').innerHTML=S.goals.map((n,g)=>'<div class="gi"><input data-g="'+g+'" value="'+esc(n)+'"><input class="tmi" type="number" inputmode="numeric" min="0" max="1440" data-t="'+g+'" value="'+(S.tgt[g]||0)+'" title="minutes per day"><button data-x="'+g+'">×</button></div><div class="gi2"><input data-s="'+g+'" placeholder="Subject" value="'+esc(S.sub[g])+'"><input data-k="'+g+'" placeholder="Task" value="'+esc(S.tk[g])+'"></div>').join('');
 }
 
 $('list').onclick=e=>{const b=e.target.closest('.row');if(!b)return;const g=+b.dataset.g,v=cell(cur,g);
@@ -489,6 +533,10 @@ $('list').addEventListener('click',e=>{const n=e.target.closest('.nt');if(!n)ret
   const ta=document.createElement('textarea');ta.className='nti';ta.rows=2;ta.maxLength=500;ta.placeholder='কেন হয়নি? (যেমন: অসুস্থ, ক্লাস, ঘুম…)';ta.value=(S.notes||{})[d+':'+g]||'';
   n.replaceWith(ta);ta.focus();
   ta.onblur=()=>{setNote(d,g,ta.value);if(!ta.parentNode)return;ta.insertAdjacentHTML('afterend',ntHtml(d,g));ta.remove();renderDash(calc())}});
+$('list').addEventListener('change',e=>{const s=e.target.closest('.nc');if(!s)return;const k=cur+':'+s.dataset.c;if(s.value)S.cat[k]=s.value;else delete S.cat[k];save();renderDash(calc())});
+$('b3').onclick=e=>{const b=e.target.closest('[data-b]');if(!b)return;const x=b3a()[+b.dataset.b];x.d=x.d?0:1;save();extras();renderDash(calc())};
+$('b3').onchange=e=>{const i=e.target.dataset.bt;if(i===undefined)return;b3a()[+i].t=e.target.value.trim();save();renderDash(calc())};
+$('rcv').onclick=e=>{if(!e.target.closest('#rcbt'))return;S.rec[cur]=S.rec[cur]?0:1;save();extras();renderDash(calc())};
 $('pv').onclick=()=>{cur--;render()};$('nx').onclick=()=>{cur++;render()};
 $('dt').onclick=()=>{cur=todayIdx();render()};
 let x0=null;const L=$('v1');
@@ -497,14 +545,15 @@ L.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[
 
 $('start').onchange=e=>{if(e.target.value){S.start=e.target.value;save();render()}};
 $('days').onchange=e=>{S.days=Math.max(1,Math.min(365,+e.target.value||1));save();render()};
-$('gl').onchange=e=>{const t=e.target.dataset.t;if(t!==undefined){S.tgt[+t]=Math.max(0,Math.min(1440,+e.target.value||0));save();render();return}const g=e.target.dataset.g;if(g!==undefined){S.goals[+g]=e.target.value.trim()||'Goal';save();render()}};
+$('gl').onchange=e=>{const sk=e.target.dataset.s!==undefined?'sub':e.target.dataset.k!==undefined?'tk':'';if(sk){S[sk][+(e.target.dataset.s??e.target.dataset.k)]=e.target.value.trim();save();render();return}
+  const t=e.target.dataset.t;if(t!==undefined){S.tgt[+t]=Math.max(0,Math.min(1440,+e.target.value||0));save();render();return}const g=e.target.dataset.g;if(g!==undefined){S.goals[+g]=e.target.value.trim()||'Goal';save();render()}};
 $('gl').onclick=e=>{const g=e.target.dataset.x;if(g===undefined||S.goals.length<2)return;
   if(!confirm('এই goal ও তার ডেটা মুছবেন?'))return;
-  const i=+g;S.goals.splice(i,1);S.tgt.splice(i,1);if(S.notes){const o={};for(const k in S.notes){const p=k.split(':').map(Number);if(p[1]===i)continue;o[p[0]+':'+(p[1]>i?p[1]-1:p[1])]=S.notes[k]}S.notes=o}for(const k in S.log){const a=S.log[k].split('');a.splice(i,1);S.log[k]=a.join('')}
+  const i=+g;S.goals.splice(i,1);S.tgt.splice(i,1);S.sub.splice(i,1);S.tk.splice(i,1);S.notes=rx(S.notes,i);S.cat=rx(S.cat,i);for(const k in S.log){const a=S.log[k].split('');a.splice(i,1);S.log[k]=a.join('')}
   save();renderSettings();render()};
 $('addg').onclick=()=>{if(S.goals.length<12){S.goals.push('New goal');save();renderSettings();render()}};
 function chk(){let h=true;try{h=!localStorage.getItem(KEY+'_prev')}catch(e){}$('undo').classList.toggle('hide',h)}
-$('rst').onclick=()=>{if(confirm('সব ✓/✕ এন্ট্রি মুছবেন? Goal ও তারিখ থাকবে। পরে Undo করা যাবে।')){try{localStorage.setItem(KEY+'_prev',JSON.stringify(S))}catch(e){}S.log={};S.notes={};save();render();chk()}};
+$('rst').onclick=()=>{if(confirm('সব ✓/✕ এন্ট্রি মুছবেন? Goal ও তারিখ থাকবে। পরে Undo করা যাবে।')){try{localStorage.setItem(KEY+'_prev',JSON.stringify(S))}catch(e){}S.log={};S.notes={};S.cat={};S.rec={};save();render();chk()}};
 $('undo').onclick=()=>{try{const x=JSON.parse(localStorage.getItem(KEY+'_prev'));if(x){S=x;save();localStorage.removeItem(KEY+'_prev');render();renderSettings();chk()}}catch(e){}};
 $('exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='habit_backup.json';a.click()};
 $('imp').onclick=()=>$('file').click();
