@@ -240,6 +240,21 @@ body .gr .gs{gap:8px}
 .dodb{display:block;margin:2px auto 10px;color:var(--sub);font-size:12px;font-weight:600;padding:8px 14px}
 body.pm .dod{display:none!important}
 @media print{.dod{display:none!important}}
+.rw{border-bottom:1px solid var(--line)}.rw:last-child{border:0}.rw .row{border:0}
+.nt{display:block;width:100%;text-align:left;padding:0 0 14px;margin-top:-6px;font-size:13px;color:var(--sub);line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.nt.has{color:var(--ink)}
+.nti{display:block;width:100%;margin:-2px 0 14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--soft);color:var(--ink);font:inherit;font-size:16px;line-height:1.4;resize:none;outline:none}
+.ng{font-size:13px;font-weight:600}.np{margin:3px 0 0;font-size:13px;color:var(--sub);line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.ntp{margin-left:auto;padding:5px 11px;border-radius:9px;background:var(--ink);color:var(--bg);font-size:12px;font-weight:600}
+body.pm.nm #v2{display:none!important}
+body.pm.nm #v4{display:block!important}
+#rep{width:718px;margin:0 auto;font-size:12px;background:#fff;color:var(--ink)}
+#rep .rd{break-inside:avoid;page-break-inside:avoid;margin:0 0 10px;padding:8px 14px;background:var(--soft);border-radius:10px}
+#rep .rdh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:6px;margin-bottom:4px;border-bottom:1px solid var(--line);font-size:13px}
+#rep .rdh span{color:var(--sub);font-size:11px}
+#rep .ri{display:grid;grid-template-columns:190px 1fr;gap:12px;padding:5px 0;font-size:12px}
+#rep .rg{font-weight:600}
+#rep .rt{white-space:pre-wrap;word-break:break-word;line-height:1.5}
 </style>
 </head>
 <body>
@@ -267,6 +282,7 @@ body.pm .dod{display:none!important}
     <div class="act"><button id="exp">Backup</button><button id="imp">Restore</button><button id="rst" class="d">Clear entries</button><button id="undo" class="hide">Undo</button></div>
     <input type="file" id="file" accept=".json" class="hide">
   </section>
+  <section id="v4" class="hide"><div id="rep"></div></section>
 </main>
 <nav><div><button id="t1" class="on">Today</button><button id="t2">Dashboard</button><button id="t3">Settings</button></div></nav>
 </div>
@@ -274,7 +290,7 @@ body.pm .dod{display:none!important}
 <script>
 const KEY='habit_tracker_v1';
 const SAMPLE={start:'2026-09-28',days:120,tgt:[60,60,60,60,60,60,0,0],goals:["📚 8:00–9:00 → AM","🎯 9:00–10:00 → AM","✒️ 11:30–12:30 → AM","📝 8:00–9:00 → PM","📖 9:00–10:00 → PM","📙 11:00–12:00 → PM","📝 Review Days","✊ Hold On"],log:{1:"01110011",2:"00010001",3:"01111001",4:"11100000",5:"01111000",6:"101----0"}};
-let S=load(),cur=1,view=1,dodAll=false;
+let S=load(),cur=1,view=1,dodAll=false,notesAll=false;
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.goals)return s}catch(e){}return JSON.parse(JSON.stringify(SAMPLE))}
 function save(){S.upd=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}sched()}
 const $=id=>document.getElementById(id);
@@ -287,6 +303,8 @@ const dateOf=n=>{const d=new Date(S.start+'T00:00:00');d.setDate(d.getDate()+n-1
 const fmt=(d,o)=>d.toLocaleDateString('en-GB',o);
 const cell=(d,g)=>(S.log[d]||'')[g]||'-';
 function setCell(d,g,v){const a=(S.log[d]||'').padEnd(S.goals.length,'-').split('');a[g]=v;S.log[d]=a.join('')}
+function setNote(d,g,v){v=String(v||'').trim().slice(0,500);const k=d+':'+g;if(v){(S.notes=S.notes||{})[k]=v}else if(S.notes)delete S.notes[k];save()}
+function ntHtml(d,g){const t=(S.notes||{})[d+':'+g];return '<button class="nt'+(t?' has':'')+'" data-n="'+g+'">'+(t?'📝 '+esc(t):'＋ কেন হয়নি? নোট লিখুন')+'</button>'}
 function todayIdx(){const t=new Date();t.setHours(0,0,0,0);return Math.round((t-dateOf(1))/864e5)+1}
 function clampDay(){cur=Math.max(1,Math.min(S.days,cur))}
 
@@ -312,7 +330,7 @@ function render(){
   $('bn').textContent=c.dd[cur];$('bt').textContent='of '+G+' done'+(c.dt?' · '+dur(td)+' of '+dur(c.dt):'');
   $('bl').style.width=(G?c.dd[cur]/G*100:0)+'%';
   $('list').innerHTML=S.goals.map((n,g)=>{const v=cell(cur,g);
-    return '<button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?'n':'')+'">'+(v==='1'?'✓':v==='0'?'✕':'')+'</span></button>'}).join('');
+    return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?'n':'')+'">'+(v==='1'?'✓':v==='0'?'✕':'')+'</span></button>'+(v==='0'?ntHtml(cur,g):'')+'</div>'}).join('');
   renderDash(c);
 }
 
@@ -369,6 +387,15 @@ function renderDash(c){
     '<div class="rows">'+shown.map(r=>r.h).join('')+'</div>'+
     (drows.length>7?'<button class="dodb" id="dodb">'+(dodAll?'Show less':'Show all '+drows.length+' days')+'</button>':'')+
     '</div></div>':'';
+  // missed-day reasons
+  let missN=0;const nl=[];
+  for(let d=D;d>=1;d--)for(let g=0;g<G;g++)if(cell(d,g)==='0'){missN++;const tx=(S.notes||{})[d+':'+g];if(tx)nl.push({d,g,tx})}
+  const nsh=notesAll?nl:nl.slice(0,6);
+  const nts=missN?'<div class="dod nts"><h3>Missed — reasons</h3><div class="card"><div class="sm"><span class="bad">✕ '+missN+' missed</span><span>📝 '+nl.length+' with reason</span>'+(nl.length?'<button class="ntp" id="ntp">⬇ PDF</button>':'')+'</div>'+
+    (nl.length?'<div class="rows">'+nsh.map(r=>'<div class="dr"><div class="dd"><b>'+fmt(dateOf(r.d),{weekday:'short',day:'numeric',month:'short'})+'</b><small>Day '+r.d+'</small></div><div><b class="ng">'+esc(S.goals[r.g]||'')+'</b><p class="np">'+esc(r.tx)+'</p></div></div>').join('')+'</div>'+
+      (nl.length>6?'<button class="dodb" id="ntb">'+(notesAll?'Show less':'Show all '+nl.length+' notes')+'</button>':''):
+      '<p class="np" style="padding:12px 0 4px">Today ট্যাবে ✕ দেওয়া goal-এর নিচে কারণ লিখলে এখানে জমা হবে।</p>')+
+    '</div></div>':'';
   const tr=c.dt&&c.tracked?c.inv/(c.dt*c.tracked):0;
   const tstrip=c.dt?'<div class="card tstrip"><div><b>'+dur(c.dt)+'</b><span>Daily target</span></div><div><b>'+dur(c.inv)+'</b><span>Time invested</span></div><div><b>'+dur(Math.round(c.tracked?c.inv/c.tracked:0))+'</b><span>Avg / day</span></div><div><b>'+pct(tr)+'</b><span>Of target time</span></div></div>':'';
   let wk='';
@@ -380,13 +407,15 @@ function renderDash(c){
    '<div class="card hero">'+ring(ov)+'<div class="hk"><div><b>'+c.tot+'</b><span>Check-ins done</span></div><div><b>'+pend+'</b><span>Pending</span></div><div><b>'+c.tracked+'</b><span>Days tracked</span></div><div><b>'+pct(avg)+'</b><span>Daily average</span></div><div><b>'+perfect+'</b><span>Perfect days</span></div><div><b>'+streak+'d</b><span>Active streak</span></div></div></div>'+
    tstrip+ins+
    '<div class="r2"><div><h3>Consistency trend</h3><div class="card trend">'+trend+'<div class="lg"><i class="k1"></i> daily %  <i class="k2"></i> 7-day average</div></div></div><div><h3>By weekday</h3><div class="card chart">'+wcols+'</div></div></div>'+
-   dod+
+   dod+nts+
    '<h3>Day-by-day consistency <span class="lgd"><i class="hy"></i>done <i class="hn"></i>missed <i class="he"></i>pending</span></h3><div class="card">'+hm+'</div>'+
    '<h3>Goal performance</h3><div class="card">'+goals+'</div>'+
    '<h3>Weekly progress</h3><div class="card"><div class="wg">'+wk+'</div></div>'+
    '<p class="foot">Progress = completed check-ins ÷ scheduled check-ins · Active streak = consecutive days with ≥50% completion · Time invested = target time of completed goals · Generated '+gen+'</p>';
   $('pdf').onclick=pmOn;
   const db=$('dodb');if(db)db.onclick=()=>{dodAll=!dodAll;renderDash(calc())};
+  const nb=$('ntb');if(nb)nb.onclick=()=>{notesAll=!notesAll;renderDash(calc())};
+  const np=$('ntp');if(np)np.onclick=pmNotes;
 }
 function pmOn(){
   const b=document.body,el=$('dash');b.classList.add('pm');
@@ -395,7 +424,25 @@ function pmOn(){
   if(H>A){const z=A/H;el.style.zoom=z.toFixed(3);el.style.width=Math.round(718/z)+'px'}
   $('app').style.zoom=Math.min(1,innerWidth/760);scrollTo(0,0)
 }
-function pmOff(){const el=$('dash');document.body.classList.remove('pm');el.style.zoom='';el.style.width='';$('app').style.zoom='';scrollTo(0,0)}
+function buildReport(){
+  const c=calc(),G=S.goals.length,D=S.days,nt=S.notes||{};
+  const gen=fmt(new Date(),{day:'numeric',month:'long',year:'numeric'});
+  const range=fmt(dateOf(1),{day:'numeric',month:'short',year:'numeric'})+' – '+fmt(dateOf(D),{day:'numeric',month:'short',year:'numeric'});
+  let missed=0,withN=0,days=0,body='';
+  for(let d=1;d<=D;d++){let items='';
+    for(let g=0;g<G;g++)if(cell(d,g)==='0'){missed++;const tx=nt[d+':'+g];
+      if(tx){withN++;items+='<div class="ri"><div class="rg">'+esc(S.goals[g])+'</div><div class="rt">'+esc(tx)+'</div></div>'}}
+    if(items){days++;body+='<div class="rd"><div class="rdh"><b>'+fmt(dateOf(d),{weekday:'short',day:'numeric',month:'short',year:'numeric'})+'</b><span>Day '+d+' · '+c.dd[d]+'/'+G+' done · '+pct(G?c.dd[d]/G:0)+'</span></div>'+items+'</div>'}}
+  return '<div class="dh"><div><h2>Missed Reasons</h2><p>Notes on missed goals · '+range+'</p></div></div>'+
+    '<div class="card tstrip"><div><b>'+missed+'</b><span>Missed slots</span></div><div><b>'+withN+'</b><span>With a reason</span></div><div><b>'+(missed-withN)+'</b><span>No reason written</span></div><div><b>'+days+'</b><span>Days with notes</span></div></div>'+
+    '<h3>Day by day</h3>'+(body||'<p class="foot" style="text-align:left">No notes yet.</p>')+
+    '<p class="foot">Reasons are the notes written under goals marked ✕ · Generated '+gen+'</p>'
+}
+function pmNotes(){
+  const b=document.body;$('rep').innerHTML=buildReport();b.classList.add('pm','nm');
+  $('app').style.zoom=Math.min(1,innerWidth/760);scrollTo(0,0)
+}
+function pmOff(){const el=$('dash');document.body.classList.remove('pm','nm');el.style.zoom='';el.style.width='';$('app').style.zoom='';scrollTo(0,0)}
 
 const SK=KEY+'_sync';
 let C=(()=>{try{return JSON.parse(localStorage.getItem(SK))||{}}catch(e){return{}}})(),pt=null;
@@ -438,6 +485,10 @@ function renderSettings(){
 
 $('list').onclick=e=>{const b=e.target.closest('.row');if(!b)return;const g=+b.dataset.g,v=cell(cur,g);
   setCell(cur,g,v==='-'?'1':v==='1'?'0':'-');save();render();if(navigator.vibrate)navigator.vibrate(8)};
+$('list').addEventListener('click',e=>{const n=e.target.closest('.nt');if(!n)return;const g=+n.dataset.n,d=cur;
+  const ta=document.createElement('textarea');ta.className='nti';ta.rows=2;ta.maxLength=500;ta.placeholder='কেন হয়নি? (যেমন: অসুস্থ, ক্লাস, ঘুম…)';ta.value=(S.notes||{})[d+':'+g]||'';
+  n.replaceWith(ta);ta.focus();
+  ta.onblur=()=>{setNote(d,g,ta.value);if(!ta.parentNode)return;ta.insertAdjacentHTML('afterend',ntHtml(d,g));ta.remove();renderDash(calc())}});
 $('pv').onclick=()=>{cur--;render()};$('nx').onclick=()=>{cur++;render()};
 $('dt').onclick=()=>{cur=todayIdx();render()};
 let x0=null;const L=$('v1');
@@ -449,11 +500,11 @@ $('days').onchange=e=>{S.days=Math.max(1,Math.min(365,+e.target.value||1));save(
 $('gl').onchange=e=>{const t=e.target.dataset.t;if(t!==undefined){S.tgt[+t]=Math.max(0,Math.min(1440,+e.target.value||0));save();render();return}const g=e.target.dataset.g;if(g!==undefined){S.goals[+g]=e.target.value.trim()||'Goal';save();render()}};
 $('gl').onclick=e=>{const g=e.target.dataset.x;if(g===undefined||S.goals.length<2)return;
   if(!confirm('এই goal ও তার ডেটা মুছবেন?'))return;
-  const i=+g;S.goals.splice(i,1);S.tgt.splice(i,1);for(const k in S.log){const a=S.log[k].split('');a.splice(i,1);S.log[k]=a.join('')}
+  const i=+g;S.goals.splice(i,1);S.tgt.splice(i,1);if(S.notes){const o={};for(const k in S.notes){const p=k.split(':').map(Number);if(p[1]===i)continue;o[p[0]+':'+(p[1]>i?p[1]-1:p[1])]=S.notes[k]}S.notes=o}for(const k in S.log){const a=S.log[k].split('');a.splice(i,1);S.log[k]=a.join('')}
   save();renderSettings();render()};
 $('addg').onclick=()=>{if(S.goals.length<12){S.goals.push('New goal');save();renderSettings();render()}};
 function chk(){let h=true;try{h=!localStorage.getItem(KEY+'_prev')}catch(e){}$('undo').classList.toggle('hide',h)}
-$('rst').onclick=()=>{if(confirm('সব ✓/✕ এন্ট্রি মুছবেন? Goal ও তারিখ থাকবে। পরে Undo করা যাবে।')){try{localStorage.setItem(KEY+'_prev',JSON.stringify(S))}catch(e){}S.log={};save();render();chk()}};
+$('rst').onclick=()=>{if(confirm('সব ✓/✕ এন্ট্রি মুছবেন? Goal ও তারিখ থাকবে। পরে Undo করা যাবে।')){try{localStorage.setItem(KEY+'_prev',JSON.stringify(S))}catch(e){}S.log={};S.notes={};save();render();chk()}};
 $('undo').onclick=()=>{try{const x=JSON.parse(localStorage.getItem(KEY+'_prev'));if(x){S=x;save();localStorage.removeItem(KEY+'_prev');render();renderSettings();chk()}}catch(e){}};
 $('exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='habit_backup.json';a.click()};
 $('imp').onclick=()=>$('file').click();
