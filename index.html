@@ -280,6 +280,12 @@ body.pm .hk{grid-template-columns:repeat(4,1fr)}
 .bkm input{flex:1;min-width:0;width:auto;text-align:left;border:1px solid var(--line);font-size:16px}
 .bkm select{border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:0 10px;font:inherit;font-size:15px}
 .bkm button{padding:0 16px;border-radius:10px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px}
+.cdc{margin:12px 0 0;padding:14px 16px 16px;border-radius:18px;background:var(--soft)}
+.cdl{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.3px;margin-bottom:10px}
+.cdg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.cdg b{display:block;font-size:30px;font-weight:700;letter-spacing:-1px;font-variant-numeric:tabular-nums;line-height:1.1}
+.cdg span{color:var(--sub);font-size:11px;font-weight:500}
+.cdc .b2{margin-top:14px}
 .bkb{display:block;width:100%;margin:-2px 0 12px;padding:14px 10px;border:1px solid var(--line);border-radius:14px;color:var(--sub);font-size:14.5px;text-align:center;line-height:1.35}
 .bkb.on{color:var(--ok)}
 </style>
@@ -289,6 +295,7 @@ body.pm .hk{grid-template-columns:repeat(4,1fr)}
 <main>
   <section id="v1">
     <div class="top"><button id="pv">‹</button><div><div id="dt"></div><small id="dn"></small></div><button id="nx">›</button></div>
+    <div id="cd" class="cdc"></div>
     <div class="big"><b id="bn"></b><span id="bt"></span></div>
     <div class="line"><i id="bl"></i></div>
     <div id="b3"></div><div id="list"></div><div id="rcv"></div><div id="bk"></div>
@@ -384,9 +391,18 @@ function render(){
   $('bl').style.width=(G?c.dd[cur]/G*100:0)+'%';
   $('list').innerHTML=S.goals.map((n,g)=>{const v=cell(cur,g);
     return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+(S.sub[g]||S.tk[g]?'<small>'+esc([S.sub[g],S.tk[g]].filter(Boolean).join(' → '))+'</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?(S.pay[cur+':'+g]>0?'b':'n'):'')+'">'+(v==='1'?'✓':v==='0'?(S.pay[cur+':'+g]>0?((+S.pay[cur+':'+g]>=(S.tgt[g]||0))?'✓':'½'):'✕'):'')+'</span></button>'+(v==='0'?bkHtml(cur,g)+catHtml(cur,g)+ntHtml(cur,g):'')+'</div>'}).join('');
-  extras();renderDash(c);
+  extras();cd();renderDash(c);
 }
 
+function cd(){
+  const el=$('cd');if(!el)return;
+  const st=dateOf(1),en=dateOf(S.days);en.setDate(en.getDate()+1);const n=new Date();let lab,t;
+  if(n>=en){el.innerHTML='<div class="cdl"><span>Target complete</span></div>';return}
+  if(n<st){lab='Starts in';t=st-n}else{lab='Time left';t=en-n}
+  const s=Math.floor(t/1000),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),x=s%60,p=v=>String(v).padStart(2,'0');
+  const pr=n<st?0:Math.min(1,(n-st)/(en-st));
+  el.innerHTML='<div class="cdl"><span>'+lab+'</span><span>Ends '+fmt(new Date(en-1),{weekday:'short',day:'numeric',month:'short'})+'</span></div><div class="cdg">'+[[d,'Days'],[h,'Hours'],[m,'Min'],[x,'Sec']].map(a=>'<div><b>'+p(a[0])+'</b><span>'+a[1]+'</span></div>').join('')+'</div><div class="b2"><i style="width:'+(pr*100).toFixed(1)+'%"></i></div>'
+}
 function ring(p){const C=2*Math.PI*54;return '<svg viewBox="0 0 130 130" class="ring"><circle cx="65" cy="65" r="54" class="rt"/><circle cx="65" cy="65" r="54" class="rf" stroke-dasharray="'+(C*Math.max(0,Math.min(1,p))).toFixed(1)+' '+C.toFixed(1)+'" transform="rotate(-90 65 65)"/><text x="65" y="68" text-anchor="middle" class="rn">'+Math.round(p*100)+'<tspan class="rp">%</tspan></text><text x="65" y="87" text-anchor="middle" class="rl">COMPLETION</text></svg>'}
 function renderDash(c){
   const {G,D}=c,ti=todayIdx(),el=Math.max(0,Math.min(D,ti)),left=Math.max(0,D-el);
@@ -611,7 +627,7 @@ $('crs').onclick=()=>{C={url:$('cu').value.trim(),key:$('ck').value.trim()};try{
 $('pmp').onclick=()=>window.print();$('pmb').onclick=pmOff;
 function show(n){view=n;[1,2,3].forEach(i=>{$('v'+i).classList.toggle('hide',i!==n);$('t'+i).classList.toggle('on',i===n)});if(n===3)renderSettings();scrollTo(0,0)}
 [1,2,3].forEach(i=>$('t'+i).onclick=()=>show(i));
-cur=todayIdx();render();chk();initCB().then(()=>pull(false));
+cur=todayIdx();render();chk();setInterval(cd,1000);initCB().then(()=>pull(false));
 if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
