@@ -314,7 +314,7 @@ body.pm .hk{grid-template-columns:repeat(4,1fr)}
 <script>
 const KEY='habit_tracker_v1';
 const SAMPLE={start:'2026-09-28',days:120,tgt:[60,60,60,60,60,60,0,0],goals:["📚 8:00–9:00 → AM","🎯 9:00–10:00 → AM","✒️ 11:30–12:30 → AM","📝 8:00–9:00 → PM","📖 9:00–10:00 → PM","📙 11:00–12:00 → PM","📝 Review Days","✊ Hold On"],log:{1:"01110011",2:"00010001",3:"01111001",4:"11100000",5:"01111000",6:"101----0"}};
-let S=load(),cur=1,view=1,dodAll=false,notesAll=false;
+let S=load(),cur=1,view=1,dodAll=false,notesAll=false,dtAll=false;
 const CATS=['Sleep','Phone/Distraction','Social/Chatting','Health/Appointment','Family/Work','Low Energy','Poor Planning','Emergency','Other'],FXS=['Fix your sleep and wake time so the first slot starts fresh.','Keep the phone out of reach during study slots.','Set a chat-free window before your hardest slot.','Plan lighter slots around appointments.','Agree on protected study hours with family or work.','Put hard subjects in your higher-energy slots.','Decide tomorrow\'s subject and task the night before.','Keep one flexible slot as an emergency buffer.','Review what got in the way and adjust one slot.'];
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.goals)return s}catch(e){}return JSON.parse(JSON.stringify(SAMPLE))}
 function save(){S.upd=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}sched()}
@@ -379,7 +379,7 @@ function render(){
   $('dt').textContent=ti===cur?'Today':fmt(d,{weekday:'short',day:'numeric',month:'short'});
   $('dn').textContent=(ti===cur?fmt(d,{weekday:'short',day:'numeric',month:'short'})+' · ':'')+(fri(cur)?'🎁 Free day · use it if you want, or waste it':'Day '+nf(1,cur)+' of '+S.days);
   let td=0;for(let g=0;g<G;g++)if(cell(cur,g)==='1')td+=S.tgt[g]||0;
-  $('bn').textContent=c.dd[cur];$('bt').textContent='of '+G+' done'+(c.dt?' · '+dur(td)+' of '+dur(c.dt):'');
+  $('bn').textContent=c.dd[cur];$('bt').textContent='of '+G+' done'+(c.dt?' · '+dur(td)+' of '+dur(c.dt)+' · '+pct(td/c.dt):'');
   $('bl').style.width=(G?c.dd[cur]/G*100:0)+'%';
   $('list').innerHTML=S.goals.map((n,g)=>{const v=cell(cur,g);
     return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+(S.sub[g]||S.tk[g]?'<small>'+esc([S.sub[g],S.tk[g]].filter(Boolean).join(' → '))+'</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?(S.pay[cur+':'+g]>0?'b':'n'):'')+'">'+(v==='1'?'✓':v==='0'?(S.pay[cur+':'+g]>0?((+S.pay[cur+':'+g]>=(S.tgt[g]||0))?'✓':'½'):'✕'):'')+'</span></button>'+(v==='0'?(fri(cur)?'':bkHtml(cur,g))+catHtml(cur,g)+ntHtml(cur,g):'')+'</div>'}).join('');
@@ -422,6 +422,19 @@ function renderDash(c){
   const hm='<div class="hm" style="--n:'+G+'"><div class="hl">'+S.goals.map(n=>'<div>'+esc(n)+'</div>').join('')+'</div><div class="hr"><svg viewBox="0 0 '+D*8+' '+G*16+'" preserveAspectRatio="none">'+cells+'</svg><div class="ax"><span>Day 1</span><span>Day '+D+'</span></div></div></div>';
   const goals=S.goals.map((n,g)=>{const p=c.per[g],t=S.tgt[g]||0;return row(esc(n)+(t?'<em class="tg">'+dur(t)+'/day</em>':''),nf(1,D)?p.y/nf(1,D):0,'<span>✔ '+p.y+' days</span>'+(t?'<span>⏱ '+dur(p.y*t)+'</span>':'')+'<span>🔥 '+p.c+' streak</span><span>🏆 '+p.b+' best</span>')}).join('');
   const tmin=d=>{let s=0;for(let g=0;g<G;g++)if(cell(d,g)==='1')s+=S.tgt[g]||0;return s};
+  let dtg='';
+  if(c.dt){
+    const dys=[];for(let d=Math.min(D,ti);d>=1;d--)if(!fri(d))dys.push(d);
+    if(dys.length){
+      let hit=0,sp=0;
+      dys.forEach(d=>{const p=tmin(d)/c.dt;sp+=p;if(p>=1)hit++});
+      const sh=dtAll?dys:dys.slice(0,7);
+      dtg='<div class="dod"><h3>Daily target</h3><div class="card"><div class="sm"><span class="ok">🎯 '+hit+' day'+(hit===1?'':'s')+' hit 100%</span><span>Avg '+pct(sp/dys.length)+'</span><span class="lt">Completed time ÷ daily target ('+dur(c.dt)+') · Fridays excluded</span></div><div class="rows">'+
+      sh.map(d=>{const m=tmin(d),p=m/c.dt;
+        return '<div class="dr"><div class="dd"><b>'+fmt(dateOf(d),{weekday:'short',day:'numeric',month:'short'})+(d===ti?' · Today':'')+'</b><small>Day '+nf(1,d)+'</small></div><div><div class="b2"><i style="width:'+Math.min(100,p*100)+'%"></i></div><div class="gs"><span>⏱ '+dur(m)+' / '+dur(c.dt)+'</span></div></div><div class="dv'+(p>=1?' ok':'')+'">'+pct(p)+(p>=1?'<small>🎯 Target hit</small>':'')+'</div></div>'}).join('')+'</div>'+
+      (dys.length>7?'<button class="dodb" id="dtb">'+(dtAll?'Show less':'Show all '+dys.length+' days')+'</button>':'')+'</div></div>'
+    }
+  }
   const tdays=[];for(let d=1;d<=D;d++)if(trk[d])tdays.push(d);
   let up=0,dn=0,eq=0;
   const drows=tdays.map((d,i)=>{
@@ -495,7 +508,7 @@ function renderDash(c){
    '<div class="dh"><div><h2>Habit Tracker</h2><p>Progress report · '+range+'</p></div><button id="pdf">⬇ PDF</button></div>'+
    '<div class="tl"><div class="line"><i style="width:'+(D?el/D*100:0)+'%"></i></div><div class="tls"><span>Day '+nf(1,el)+' of '+S.days+'</span><span>'+Math.max(0,S.days-nf(1,el))+' days left</span></div></div>'+
    '<div class="card hero">'+ring(ov)+'<div class="hk"><div><b>'+c.tracked+'</b><span>Days tracked</span></div><div><b>'+pct(avg)+'</b><span>Daily average</span></div><div><b>'+perfect+'</b><span>Perfect days</span></div><div><b>'+streak+'d</b><span>Active streak</span></div></div></div>'+
-   b3sec+tstrip+bkS+ins+wrv+
+   b3sec+tstrip+dtg+bkS+ins+wrv+
    '<div class="r2"><div><h3>Consistency trend</h3><div class="card trend">'+trend+'<div class="lg"><i class="k1"></i> daily %  <i class="k2"></i> 7-day average</div></div></div><div><h3>By weekday</h3><div class="card chart">'+wcols+'</div></div></div>'+
    dod+nts+fr+
    '<h3>Day-by-day consistency <span class="lgd"><i class="hy"></i>done <i class="hb"></i>banked <i class="hn"></i>missed <i class="he"></i>pending</span></h3><div class="card">'+hm+'</div>'+
@@ -507,6 +520,7 @@ function renderDash(c){
   const nb=$('ntb');if(nb)nb.onclick=()=>{notesAll=!notesAll;renderDash(calc())};
   const np=$('ntp');if(np)np.onclick=pmNotes;
   const fp=$('frp');if(fp)fp.onclick=pmFri;
+  const tb=$('dtb');if(tb)tb.onclick=()=>{dtAll=!dtAll;renderDash(calc())};
 }
 function pmOn(){
   const b=document.body,el=$('dash');b.classList.add('pm');
