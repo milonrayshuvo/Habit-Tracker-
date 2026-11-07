@@ -37,6 +37,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 .ck.n{background:var(--bad);border-color:var(--bad)}
 .ck.b{background:var(--warn);border-color:var(--warn);color:#422006}
 .row.done .nm{color:var(--sub)}
+.row{cursor:default}.row .ck{position:relative;cursor:pointer}.row .ck::after{content:'';position:absolute;inset:-14px}
 nav{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 nav div{max-width:480px;margin:0 auto;display:flex}
 nav button{flex:1;padding:16px 0;color:var(--sub);font-size:13px;font-weight:600;letter-spacing:.3px}
@@ -278,6 +279,7 @@ body.pm .hk{grid-template-columns:repeat(4,1fr)}
 .fsub{display:block;color:var(--sub);font-size:12px;margin-top:3px;font-weight:400}
 .mi{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 12px;font-size:13px;color:var(--sub)}
 .mi input{width:84px;text-align:right;border:1px solid var(--line);font-size:15px;padding:8px 10px}
+.mi span{pointer-events:none;user-select:none;-webkit-user-select:none}
 </style>
 </head>
 <body>
@@ -349,7 +351,7 @@ const am=(d,g)=>{const k=d+':'+g,pp=+(S.pay||{})[k]||0;if(rawc(d,g)==='0'&&pp>0)
 function miHtml(d,g){
   const t=S.tgt[g]||0;if(!t)return'';
   const v=(S.mins||{})[d+':'+g],sh=v!==undefined?v:(cell(d,g)==='1'?t:'');
-  return '<div class="mi"><span>⏱ Minutes done today? (min '+Math.ceil(t/2)+')</span><input type="number" inputmode="numeric" min="0" max="1440" data-m="'+g+'" placeholder="'+t+'" value="'+sh+'"></div>'
+  return '<div class="mi"><span>⏱ Minutes done today? (min '+Math.ceil(t/2)+')</span><input type="number" inputmode="numeric" min="0" max="1440" data-m="'+g+'" readonly placeholder="'+t+'" value="'+sh+'"></div>'
 }
 function setCell(d,g,v){const a=(S.log[d]||'').padEnd(S.goals.length,'-').split('');a[g]=v;S.log[d]=a.join('')}
 function setNote(d,g,v){v=String(v||'').trim().slice(0,500);const k=d+':'+g;if(v){(S.notes=S.notes||{})[k]=v}else if(S.notes)delete S.notes[k];save()}
@@ -619,13 +621,15 @@ function renderSettings(){
   $('gl').innerHTML=S.goals.map((n,g)=>'<div class="gi"><input data-g="'+g+'" value="'+esc(n)+'"><input class="tmi" type="number" inputmode="numeric" min="0" max="1440" data-t="'+g+'" value="'+(S.tgt[g]||0)+'" title="minutes per day"><button data-x="'+g+'">×</button></div><div class="gi2"><input data-s="'+g+'" placeholder="Subject" value="'+esc(S.sub[g])+'"><input data-k="'+g+'" placeholder="Task" value="'+esc(S.tk[g])+'"></div>').join('');
 }
 
-$('list').onclick=e=>{const b=e.target.closest('.row');if(!b)return;const g=+b.dataset.g,v=rawc(cur,g);
+$('list').onclick=e=>{const b=e.target.closest('.row');if(!b||!e.target.closest('.ck'))return;const g=+b.dataset.g,v=rawc(cur,g);
   const nv=v==='-'?'1':v==='1'?'0':'-';setCell(cur,g,nv);delete S.mins[cur+':'+g];if(nv!=='0')delete S.pay[cur+':'+g];save();render();if(navigator.vibrate)navigator.vibrate(8)};
 $('list').addEventListener('change',e=>{const i=e.target.closest('.mi input');if(!i)return;const g=+i.dataset.m,k=cur+':'+g,t=S.tgt[g]||0,raw=i.value.trim();
   if(raw===''){delete S.mins[k]}
   else{const m=Math.max(0,Math.min(1440,Math.round(parseFloat(raw))||0));S.mins[k]=m;
     if(m>=Math.ceil(t/2)){setCell(cur,g,'1');delete S.pay[k]}else setCell(cur,g,'0')}
   save();render()});
+$('list').addEventListener('pointerdown',e=>{if(e.target.matches&&e.target.matches('.mi input'))e.target.readOnly=false});
+$('list').addEventListener('focusout',e=>{if(e.target.matches&&e.target.matches('.mi input'))e.target.readOnly=true});
 $('list').addEventListener('input',e=>{const i=e.target.closest('.mi input');if(!i)return;const g=+i.dataset.m,k=cur+':'+g,t=S.tgt[g]||0,raw=i.value.trim();
   if(raw===''){delete S.mins[k];return}
   const m=Math.max(0,Math.min(1440,Math.round(parseFloat(raw))||0));S.mins[k]=m;
