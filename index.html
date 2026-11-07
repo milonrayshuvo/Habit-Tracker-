@@ -332,8 +332,8 @@ function bank(upTo){
 }
 function bkHtml(d,g){
   const t=S.tgt[g]||0;if(!t)return'';const p=+S.pay[d+':'+g]||0;
-  if(p)return '<button class="bkb on" data-p="'+g+'">✓ '+dur(p)+' used from bank'+(p<t?' · '+dur(t-p)+' still missed':'')+' (tap to undo)</button>';
-  return '<button class="bkb" data-p="'+g+'">Use '+dur(t)+' from bank ('+dur(bank(d).bal)+' available)</button>'
+  if(p)return '<button class="bkb on" data-p="'+g+'">✓ '+dur(p)+' used from bank'+(am(d,g)<t?' · '+dur(t-am(d,g))+' still missed':'')+' (tap to undo)</button>';
+  return '<button class="bkb" data-p="'+g+'">Use '+dur(Math.max(0,t-(+(S.mins||{})[d+':'+g]||0)))+' from bank ('+dur(bank(d).bal)+' available)</button>'
 }
 function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.ex=S.ex||{};S.pay=S.pay||{};S.mins=S.mins||{};S.b3=S.b3||{};if(!Array.isArray(S.b3t)){S.b3t=['','',''];for(const k of Object.keys(S.b3).map(Number).sort((a,b)=>b-a)){const a=S.b3[k]||[];if(a.some(x=>x&&x.t)){S.b3t=[0,1,2].map(i=>(a[i]&&a[i].t)||'');break}}}for(let i=0;i<3;i++)if(typeof S.b3t[i]!=='string')S.b3t[i]='';S.b3t.length=3;if(!Array.isArray(S.b3g))S.b3g=[0,0,0];for(let i=0;i<3;i++)if(!(S.b3g[i]>0))S.b3g[i]=0;S.b3g.length=3}
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
@@ -344,12 +344,12 @@ const nfMs=(a,b)=>{let ms=0,d=new Date(a);d.setHours(0,0,0,0);while(d<b){const e
 const TL=()=>{let n=0,d=0;while(n<S.days&&d<800){d++;if(!fri(d))n++}return d};
 const fmt=(d,o)=>d.toLocaleDateString('en-GB',o);
 const rawc=(d,g)=>(S.log[d]||'')[g]||'-';
-const cell=(d,g)=>{const v=rawc(d,g),t=S.tgt?S.tgt[g]||0:0;return v==='0'&&t>0&&(+(S.pay||{})[d+':'+g]||0)>=t?'1':v};
-const am=(d,g)=>{if(rawc(d,g)==='0'&&cell(d,g)==='1')return S.tgt[g]||0;const v=(S.mins||{})[d+':'+g];return v!==undefined?(+v||0):(cell(d,g)==='1'?(S.tgt[g]||0):0)};
+const cell=(d,g)=>{const v=rawc(d,g),t=S.tgt?S.tgt[g]||0:0;const p=+(S.pay||{})[d+':'+g]||0;return v==='0'&&t>0&&p>0&&p+(+(S.mins||{})[d+':'+g]||0)>=Math.ceil(t/2)?'1':v};
+const am=(d,g)=>{const k=d+':'+g,pp=+(S.pay||{})[k]||0;if(rawc(d,g)==='0'&&pp>0)return Math.min(S.tgt[g]||0,(+(S.mins||{})[k]||0)+pp);const v=(S.mins||{})[d+':'+g];return v!==undefined?(+v||0):(cell(d,g)==='1'?(S.tgt[g]||0):0)};
 function miHtml(d,g){
   const t=S.tgt[g]||0;if(!t)return'';
   const v=(S.mins||{})[d+':'+g],sh=v!==undefined?v:(cell(d,g)==='1'?t:'');
-  return '<div class="mi"><span>⏱ আজ কত মিনিট করলে? (কমপক্ষে '+Math.ceil(t/2)+')</span><input type="number" inputmode="numeric" min="0" max="1440" data-m="'+g+'" placeholder="'+t+'" value="'+sh+'"></div>'
+  return '<div class="mi"><span>⏱ Minutes done today? (min '+Math.ceil(t/2)+')</span><input type="number" inputmode="numeric" min="0" max="1440" data-m="'+g+'" placeholder="'+t+'" value="'+sh+'"></div>'
 }
 function setCell(d,g,v){const a=(S.log[d]||'').padEnd(S.goals.length,'-').split('');a[g]=v;S.log[d]=a.join('')}
 function setNote(d,g,v){v=String(v||'').trim().slice(0,500);const k=d+':'+g;if(v){(S.notes=S.notes||{})[k]=v}else if(S.notes)delete S.notes[k];save()}
@@ -391,7 +391,7 @@ function render(){
   $('bn').textContent=c.dd[cur];$('bt').textContent='of '+G+' done'+(c.dt?' · '+dur(td)+' of '+dur(c.dt)+' · '+pct(td/c.dt):'');
   $('bl').style.width=(G?c.dd[cur]/G*100:0)+'%';
   $('list').innerHTML=S.goals.map((n,g)=>{const v=rawc(cur,g);
-    return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+(S.sub[g]||S.tk[g]?'<small>'+esc([S.sub[g],S.tk[g]].filter(Boolean).join(' → '))+'</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?(S.pay[cur+':'+g]>0?'b':'n'):'')+'">'+(v==='1'?'✓':v==='0'?(S.pay[cur+':'+g]>0?((+S.pay[cur+':'+g]>=(S.tgt[g]||0))?'✓':'½'):'✕'):'')+'</span></button>'+miHtml(cur,g)+(v==='0'?(fri(cur)?'':bkHtml(cur,g))+catHtml(cur,g)+ntHtml(cur,g):'')+'</div>'}).join('');
+    return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+(S.sub[g]||S.tk[g]?'<small>'+esc([S.sub[g],S.tk[g]].filter(Boolean).join(' → '))+'</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?(S.pay[cur+':'+g]>0?'b':'n'):'')+'">'+(v==='1'?'✓':v==='0'?(S.pay[cur+':'+g]>0?((cell(cur,g)==='1')?'✓':'½'):'✕'):'')+'</span></button>'+miHtml(cur,g)+(v==='0'?(fri(cur)?'':bkHtml(cur,g))+catHtml(cur,g)+ntHtml(cur,g):'')+'</div>'}).join('');
   extras();cd();renderDash(c);
 }
 
@@ -511,8 +511,8 @@ function renderDash(c){
   const tstrip=c.dt?'<div class="card tstrip"><div><b>'+dur(c.dt)+'</b><span>Daily target</span></div><div><b>'+dur(c.inv)+'</b><span>Time invested</span></div><div><b>'+dur(Math.round(c.tracked?c.inv/c.tracked:0))+'</b><span>Avg / day</span></div><div><b>'+pct(tr)+'</b><span>Of target time</span></div></div>':'';
   const bkT=bank(D),bkS=bkT.earned?'<div class="card tstrip" style="grid-template-columns:repeat(3,1fr)"><div><b>'+dur(bkT.bal)+'</b><span>Extra banked</span></div><div><b>'+dur(bkT.used)+'</b><span>Used</span></div><div><b>'+Object.keys(S.ex).length+'</b><span>Extra days</span></div></div>':'';
   let wk='';
-  for(let k=0;k*7<D;k++){const a=k*7+1,b=Math.min(k*7+7,D);let t=0;for(let x=a;x<=b;x++)t+=c.dd[x];const tt=G*nf(a,b),r=tt?t/tt:0;
-    wk+='<div class="wc"><div class="gt"><span>Week '+(k+1)+'</span><b>'+pct(r)+'</b></div><div class="b2"><i style="width:'+Math.max(0,Math.min(1,r))*100+'%"></i></div><div class="gs">'+fmt(dateOf(a),dm)+' – '+fmt(dateOf(b),dm)+' · '+t+'/'+tt+'</div></div>'}
+  for(let k=0;k*7<D;k++){const a=k*7+1,b=Math.min(k*7+7,D);let fq=0,mm=0,mt=0,un=0,ut=0;for(let x=a;x<=b;x++)for(let g=0;g<G;g++){const tg=S.tgt[g]||0;if(tg>0){const m=am(x,g);fq+=Math.min(1,m/tg);mm+=m;if(!fri(x))mt+=tg}else{if(cell(x,g)==='1'){fq++;un++}if(!fri(x))ut++}}const tt=G*nf(a,b),r=tt?fq/tt:0;
+    wk+='<div class="wc"><div class="gt"><span>Week '+(k+1)+'</span><b>'+pct(r)+'</b></div><div class="b2"><i style="width:'+Math.max(0,Math.min(1,r))*100+'%"></i></div><div class="gs">'+fmt(dateOf(a),dm)+' – '+fmt(dateOf(b),dm)+' · '+(mt?dur(mm)+' / '+dur(mt):'')+(mt&&ut?' · ':'')+(ut?un+'/'+ut:'')+'</div></div>'}
   $('dash').innerHTML=
    '<div class="dh"><div><h2>Habit Tracker</h2><p>Progress report · '+range+'</p></div><button id="pdf">⬇ PDF</button></div>'+
    '<div class="tl"><div class="line"><i style="width:'+(D?el/D*100:0)+'%"></i></div><div class="tls"><span>Day '+nf(1,el)+' of '+S.days+'</span><span>'+Math.max(0,S.days-nf(1,el))+' days left</span></div></div>'+
@@ -630,7 +630,7 @@ $('list').addEventListener('input',e=>{const i=e.target.closest('.mi input');if(
   if(raw===''){delete S.mins[k];return}
   const m=Math.max(0,Math.min(1440,Math.round(parseFloat(raw))||0));S.mins[k]=m;
   const ok=m>=Math.ceil(t/2);setCell(cur,g,ok?'1':'0');if(ok)delete S.pay[k];
-  const w=i.closest('.rw'),ck=w.querySelector('.ck');ck.className='ck '+(ok?'y':'n');ck.textContent=ok?'✓':'✕';w.querySelector('.row').classList.toggle('done',ok);save()});
+  const ef=cell(cur,g)==='1';const w=i.closest('.rw'),ck=w.querySelector('.ck');ck.className='ck '+(ok?'y':ef?'b':'n');ck.textContent=(ok||ef)?'✓':'✕';w.querySelector('.row').classList.toggle('done',ok);save()});
 $('list').addEventListener('click',e=>{const n=e.target.closest('.nt');if(!n)return;const g=+n.dataset.n,d=cur;
   const ta=document.createElement('textarea');ta.className='nti';ta.rows=2;ta.maxLength=500;ta.placeholder='কেন হয়নি? (যেমন: অসুস্থ, ক্লাস, ঘুম…)';ta.value=(S.notes||{})[d+':'+g]||'';
   n.replaceWith(ta);ta.focus();
@@ -646,13 +646,13 @@ $('bk').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   save();render()};
 $('list').addEventListener('click',e=>{const b=e.target.closest('.bkb');if(!b)return;const g=+b.dataset.p,k=cur+':'+g;
   if(S.pay[k])delete S.pay[k];
-  else{const t=S.tgt[g]||0,a=Math.min(t,bank(cur).bal);if(a<=0){alert('Bank is empty');return}S.pay[k]=a}
+  else{const t=S.tgt[g]||0,a=Math.min(Math.max(0,t-(+S.mins[k]||0)),bank(cur).bal);if(a<=0){alert('Bank is empty');return}S.pay[k]=a}
   save();render()});
 $('pv').onclick=()=>{cur--;render()};$('nx').onclick=()=>{cur++;render()};
 $('dt').onclick=()=>{cur=todayIdx();render()};
-let x0=null;const L=$('v1');
-L.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});
-L.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)>70){cur+=dx<0?1:-1;render()}});
+let x0=null,y0=0;const L=$('v1');
+L.addEventListener('touchstart',e=>{if(e.target.closest('input,select,textarea,.nti,.bkc,.cdc')){x0=null;return}x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+L.addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;if(false){cur+=dx<0?1:-1;render()}});
 
 $('start').onchange=e=>{if(e.target.value){S.start=e.target.value;save();render()}};
 $('days').onchange=e=>{S.days=Math.max(1,Math.min(365,+e.target.value||1));save();render()};
