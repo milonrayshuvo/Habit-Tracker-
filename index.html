@@ -276,6 +276,8 @@ body.pm .hk{grid-template-columns:repeat(4,1fr)}
 .sw.on{background:var(--ok)}
 .sw.on::after{left:23px}
 .fsub{display:block;color:var(--sub);font-size:12px;margin-top:3px;font-weight:400}
+.mi{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-4px 0 12px;font-size:13px;color:var(--sub)}
+.mi input{width:84px;text-align:right;border:1px solid var(--line);font-size:15px;padding:8px 10px}
 </style>
 </head>
 <body>
@@ -325,7 +327,7 @@ function autoMin(n){const m=String(n).match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,
 function bank(upTo){
   let earned=0,used=0;
   for(let d=1;d<=upTo;d++)earned+=+S.ex[d]||0;
-  for(const k in S.pay){const p=k.split(':').map(Number);if(p[0]<=upTo&&cell(p[0],p[1])==='0')used+=+S.pay[k]||0}
+  for(const k in S.pay){const p=k.split(':').map(Number);if(p[0]<=upTo&&rawc(p[0],p[1])==='0')used+=+S.pay[k]||0}
   return{bal:Math.max(0,earned-used),earned,used}
 }
 function bkHtml(d,g){
@@ -333,7 +335,7 @@ function bkHtml(d,g){
   if(p)return '<button class="bkb on" data-p="'+g+'">✓ '+dur(p)+' used from bank'+(p<t?' · '+dur(t-p)+' still missed':'')+' (tap to undo)</button>';
   return '<button class="bkb" data-p="'+g+'">Use '+dur(t)+' from bank ('+dur(bank(d).bal)+' available)</button>'
 }
-function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.ex=S.ex||{};S.pay=S.pay||{};S.b3=S.b3||{};if(!Array.isArray(S.b3t)){S.b3t=['','',''];for(const k of Object.keys(S.b3).map(Number).sort((a,b)=>b-a)){const a=S.b3[k]||[];if(a.some(x=>x&&x.t)){S.b3t=[0,1,2].map(i=>(a[i]&&a[i].t)||'');break}}}for(let i=0;i<3;i++)if(typeof S.b3t[i]!=='string')S.b3t[i]='';S.b3t.length=3;if(!Array.isArray(S.b3g))S.b3g=[0,0,0];for(let i=0;i<3;i++)if(!(S.b3g[i]>0))S.b3g[i]=0;S.b3g.length=3}
+function ensure(){if(!Array.isArray(S.tgt))S.tgt=[];S.goals.forEach((g,i)=>{if(typeof S.tgt[i]!=='number')S.tgt[i]=autoMin(g)});S.tgt.length=S.goals.length;['sub','tk'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];S[k].length=S.goals.length;for(let i=0;i<S.goals.length;i++)if(typeof S[k][i]!=='string')S[k][i]=''});S.cat=S.cat||{};S.rec=S.rec||{};S.ex=S.ex||{};S.pay=S.pay||{};S.mins=S.mins||{};S.b3=S.b3||{};if(!Array.isArray(S.b3t)){S.b3t=['','',''];for(const k of Object.keys(S.b3).map(Number).sort((a,b)=>b-a)){const a=S.b3[k]||[];if(a.some(x=>x&&x.t)){S.b3t=[0,1,2].map(i=>(a[i]&&a[i].t)||'');break}}}for(let i=0;i<3;i++)if(typeof S.b3t[i]!=='string')S.b3t[i]='';S.b3t.length=3;if(!Array.isArray(S.b3g))S.b3g=[0,0,0];for(let i=0;i<3;i++)if(!(S.b3g[i]>0))S.b3g[i]=0;S.b3g.length=3}
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const dateOf=n=>{const d=new Date(S.start+'T00:00:00');d.setDate(d.getDate()+n-1);return d};
 const fri=d=>S.fb!==false&&dateOf(d).getDay()===5;
@@ -341,7 +343,14 @@ const nf=(a,b)=>{let n=0;for(let d=a;d<=b;d++)if(!fri(d))n++;return n};
 const nfMs=(a,b)=>{let ms=0,d=new Date(a);d.setHours(0,0,0,0);while(d<b){const e=new Date(d);e.setDate(e.getDate()+1);if(S.fb===false||d.getDay()!==5){const x=Math.max(a,d),y=Math.min(b,e);if(y>x)ms+=y-x}d=e}return ms};
 const TL=()=>{let n=0,d=0;while(n<S.days&&d<800){d++;if(!fri(d))n++}return d};
 const fmt=(d,o)=>d.toLocaleDateString('en-GB',o);
-const cell=(d,g)=>(S.log[d]||'')[g]||'-';
+const rawc=(d,g)=>(S.log[d]||'')[g]||'-';
+const cell=(d,g)=>{const v=rawc(d,g),t=S.tgt?S.tgt[g]||0:0;return v==='0'&&t>0&&(+(S.pay||{})[d+':'+g]||0)>=t?'1':v};
+const am=(d,g)=>{if(rawc(d,g)==='0'&&cell(d,g)==='1')return S.tgt[g]||0;const v=(S.mins||{})[d+':'+g];return v!==undefined?(+v||0):(cell(d,g)==='1'?(S.tgt[g]||0):0)};
+function miHtml(d,g){
+  const t=S.tgt[g]||0;if(!t)return'';
+  const v=(S.mins||{})[d+':'+g],sh=v!==undefined?v:(cell(d,g)==='1'?t:'');
+  return '<div class="mi"><span>⏱ আজ কত মিনিট করলে? (কমপক্ষে '+Math.ceil(t/2)+')</span><input type="number" inputmode="numeric" min="0" max="1440" data-m="'+g+'" placeholder="'+t+'" value="'+sh+'"></div>'
+}
 function setCell(d,g,v){const a=(S.log[d]||'').padEnd(S.goals.length,'-').split('');a[g]=v;S.log[d]=a.join('')}
 function setNote(d,g,v){v=String(v||'').trim().slice(0,500);const k=d+':'+g;if(v){(S.notes=S.notes||{})[k]=v}else if(S.notes)delete S.notes[k];save()}
 function ntHtml(d,g){const t=(S.notes||{})[d+':'+g];return '<button class="nt'+(t?' has':'')+'" data-n="'+g+'">'+(t?'📝 '+esc(t):(fri(d)?'＋ Why did you skip this free day? Add a note':'＋ কেন হয়নি? নোট লিখুন'))+'</button>'}
@@ -367,7 +376,7 @@ function calc(){
     for(let d=1;d<=D;d++){const v=cell(d,g);if(v==='1'){y++;c++;b=Math.max(b,c)}else if(v==='0'&&!fri(d))c=0}
     per.push({y,c,b})}
   for(let d=1;d<=D;d++){let n=0,a=false;for(let g=0;g<G;g++){const v=cell(d,g);if(v==='1')n++;if(v!=='-')a=true}dd[d]=n;tot+=n;if(a)tracked++}
-  ensure();let inv=0,dt=0;for(let g=0;g<G;g++){inv+=per[g].y*(S.tgt[g]||0);dt+=S.tgt[g]||0}
+  ensure();let inv=0,dt=0;for(let g=0;g<G;g++){for(let d=1;d<=D;d++)inv+=am(d,g);dt+=S.tgt[g]||0}
   return{G,D,per,tot,tracked,dd,inv,dt}
 }
 
@@ -378,11 +387,11 @@ function render(){
   const d=dateOf(cur),ti=todayIdx();
   $('dt').textContent=ti===cur?'Today':fmt(d,{weekday:'short',day:'numeric',month:'short'});
   $('dn').textContent=(ti===cur?fmt(d,{weekday:'short',day:'numeric',month:'short'})+' · ':'')+(fri(cur)?'🎁 Free day · use it if you want, or waste it':'Day '+nf(1,cur)+' of '+S.days);
-  let td=0;for(let g=0;g<G;g++)if(cell(cur,g)==='1')td+=S.tgt[g]||0;
+  let td=0;for(let g=0;g<G;g++)td+=am(cur,g);
   $('bn').textContent=c.dd[cur];$('bt').textContent='of '+G+' done'+(c.dt?' · '+dur(td)+' of '+dur(c.dt)+' · '+pct(td/c.dt):'');
   $('bl').style.width=(G?c.dd[cur]/G*100:0)+'%';
-  $('list').innerHTML=S.goals.map((n,g)=>{const v=cell(cur,g);
-    return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+(S.sub[g]||S.tk[g]?'<small>'+esc([S.sub[g],S.tk[g]].filter(Boolean).join(' → '))+'</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?(S.pay[cur+':'+g]>0?'b':'n'):'')+'">'+(v==='1'?'✓':v==='0'?(S.pay[cur+':'+g]>0?((+S.pay[cur+':'+g]>=(S.tgt[g]||0))?'✓':'½'):'✕'):'')+'</span></button>'+(v==='0'?(fri(cur)?'':bkHtml(cur,g))+catHtml(cur,g)+ntHtml(cur,g):'')+'</div>'}).join('');
+  $('list').innerHTML=S.goals.map((n,g)=>{const v=rawc(cur,g);
+    return '<div class="rw"><button class="row'+(v==='1'?' done':'')+'" data-g="'+g+'"><span class="nm">'+esc(n)+(S.tgt[g]?'<small>'+dur(S.tgt[g])+' target</small>':'')+(S.sub[g]||S.tk[g]?'<small>'+esc([S.sub[g],S.tk[g]].filter(Boolean).join(' → '))+'</small>':'')+'</span><span class="ck '+(v==='1'?'y':v==='0'?(S.pay[cur+':'+g]>0?'b':'n'):'')+'">'+(v==='1'?'✓':v==='0'?(S.pay[cur+':'+g]>0?((+S.pay[cur+':'+g]>=(S.tgt[g]||0))?'✓':'½'):'✕'):'')+'</span></button>'+miHtml(cur,g)+(v==='0'?(fri(cur)?'':bkHtml(cur,g))+catHtml(cur,g)+ntHtml(cur,g):'')+'</div>'}).join('');
   extras();cd();renderDash(c);
 }
 
@@ -418,10 +427,10 @@ function renderDash(c){
     win.push(pc[d]);if(win.length>7)win.shift();const m=win.reduce((x,y)=>x+y,0)/win.length;pts.push((d-.4).toFixed(2)+','+(100-m*100).toFixed(1))}
   const trend='<svg viewBox="0 0 '+D+' 100" preserveAspectRatio="none"><line x1="0" x2="'+D+'" y1="50" y2="50" class="gl"/>'+bars+(pts.length>1?'<polyline points="'+pts.join(' ')+'" class="tl2"/>':'')+'</svg>';
   let cells='';
-  for(let g=0;g<G;g++)for(let d=1;d<=D;d++){const v=cell(d,g);cells+='<rect x="'+(d-1)*8+'" y="'+g*16+'" width="7" height="14" rx="1.5" class="'+(v==='1'?'hy':v==='0'?(S.pay[d+':'+g]>0?'hb':'hn'):'he')+'"/>'}
+  for(let g=0;g<G;g++)for(let d=1;d<=D;d++){const v=rawc(d,g);cells+='<rect x="'+(d-1)*8+'" y="'+g*16+'" width="7" height="14" rx="1.5" class="'+(v==='1'?'hy':v==='0'?(S.pay[d+':'+g]>0?'hb':'hn'):'he')+'"/>'}
   const hm='<div class="hm" style="--n:'+G+'"><div class="hl">'+S.goals.map(n=>'<div>'+esc(n)+'</div>').join('')+'</div><div class="hr"><svg viewBox="0 0 '+D*8+' '+G*16+'" preserveAspectRatio="none">'+cells+'</svg><div class="ax"><span>Day 1</span><span>Day '+D+'</span></div></div></div>';
-  const goals=S.goals.map((n,g)=>{const p=c.per[g],t=S.tgt[g]||0;return row(esc(n)+(t?'<em class="tg">'+dur(t)+'/day</em>':''),nf(1,D)?p.y/nf(1,D):0,'<span>✔ '+p.y+' days</span>'+(t?'<span>⏱ '+dur(p.y*t)+'</span>':'')+'<span>🔥 '+p.c+' streak</span><span>🏆 '+p.b+' best</span>')}).join('');
-  const tmin=d=>{let s=0;for(let g=0;g<G;g++)if(cell(d,g)==='1')s+=S.tgt[g]||0;return s};
+  const goals=S.goals.map((n,g)=>{const p=c.per[g],t=S.tgt[g]||0;let gm=0;for(let d=1;d<=D;d++)gm+=am(d,g);return row(esc(n)+(t?'<em class="tg">'+dur(t)+'/day</em>':''),nf(1,D)?p.y/nf(1,D):0,'<span>✔ '+p.y+' days</span>'+(t?'<span>⏱ '+dur(gm)+'</span>':'')+'<span>🔥 '+p.c+' streak</span><span>🏆 '+p.b+' best</span>')}).join('');
+  const tmin=d=>{let s=0;for(let g=0;g<G;g++)s+=am(d,g);return s};
   let dtg='';
   if(c.dt){
     const dys=[];for(let d=Math.min(D,ti);d>=1;d--)if(!fri(d))dys.push(d);
@@ -464,7 +473,7 @@ function renderDash(c){
       '<p class="np" style="padding:12px 0 4px">Today ট্যাবে ✕ দেওয়া goal-এর নিচে কারণ লিখলে এখানে জমা হবে।</p>')+
     '</div></div>':'';
   const ts=c.tracked,sm={};
-  S.goals.forEach((n,g)=>{const s=S.sub[g];if(!s)return;const o=sm[s]||(sm[s]={y:0,n:0,m:0});o.y+=c.per[g].y;o.n++;o.m+=c.per[g].y*(S.tgt[g]||0)});
+  S.goals.forEach((n,g)=>{const s=S.sub[g];if(!s)return;const o=sm[s]||(sm[s]={y:0,n:0,m:0});o.y+=c.per[g].y;o.n++;for(let d=1;d<=D;d++)o.m+=am(d,g)});
   const subs=Object.keys(sm).length&&ts?'<div class="dod"><h3>Subject performance</h3><div class="card">'+Object.keys(sm).map(k=>row(esc(k),sm[k].y/(sm[k].n*ts),'<span>✔ '+sm[k].y+'/'+sm[k].n*ts+'</span><span>⏱ '+dur(sm[k].m)+'</span>')).join('')+'</div></div>':'';
   const rc={};for(const k in S.cat){const p=k.split(':').map(Number);if(cell(p[0],p[1])==='0'&&!fri(p[0]))rc[S.cat[k]]=(rc[S.cat[k]]||0)+1}
   const rl=Object.keys(rc).sort((a,b)=>rc[b]-rc[a]),rtt=rl.reduce((s,k)=>s+rc[k],0);
@@ -514,7 +523,7 @@ function renderDash(c){
    '<h3>Day-by-day consistency <span class="lgd"><i class="hy"></i>done <i class="hb"></i>banked <i class="hn"></i>missed <i class="he"></i>pending</span></h3><div class="card">'+hm+'</div>'+
    '<h3>Goal performance</h3><div class="card">'+goals+'</div>'+subs+rsn+
    '<h3>Weekly progress</h3><div class="card"><div class="wg">'+wk+'</div></div>'+
-   '<p class="foot">Progress = completed check-ins ÷ scheduled check-ins (Friday = bonus: done counts, missed does not, so it can go above 100%) · Active streak = consecutive days with ≥50% completion, Fridays never break it · Time invested = target time of completed goals · Generated '+gen+'</p>';
+   '<p class="foot">Progress = completed check-ins ÷ scheduled check-ins (Friday = bonus: done counts, missed does not, so it can go above 100%) · Active streak = consecutive days with ≥50% completion, Fridays never break it · Time invested = minutes you entered (or the target time if you just ticked) · Generated '+gen+'</p>';
   $('pdf').onclick=pmOn;
   const db=$('dodb');if(db)db.onclick=()=>{dodAll=!dodAll;renderDash(calc())};
   const nb=$('ntb');if(nb)nb.onclick=()=>{notesAll=!notesAll;renderDash(calc())};
@@ -610,8 +619,18 @@ function renderSettings(){
   $('gl').innerHTML=S.goals.map((n,g)=>'<div class="gi"><input data-g="'+g+'" value="'+esc(n)+'"><input class="tmi" type="number" inputmode="numeric" min="0" max="1440" data-t="'+g+'" value="'+(S.tgt[g]||0)+'" title="minutes per day"><button data-x="'+g+'">×</button></div><div class="gi2"><input data-s="'+g+'" placeholder="Subject" value="'+esc(S.sub[g])+'"><input data-k="'+g+'" placeholder="Task" value="'+esc(S.tk[g])+'"></div>').join('');
 }
 
-$('list').onclick=e=>{const b=e.target.closest('.row');if(!b)return;const g=+b.dataset.g,v=cell(cur,g);
-  const nv=v==='-'?'1':v==='1'?'0':'-';setCell(cur,g,nv);if(nv!=='0')delete S.pay[cur+':'+g];save();render();if(navigator.vibrate)navigator.vibrate(8)};
+$('list').onclick=e=>{const b=e.target.closest('.row');if(!b)return;const g=+b.dataset.g,v=rawc(cur,g);
+  const nv=v==='-'?'1':v==='1'?'0':'-';setCell(cur,g,nv);delete S.mins[cur+':'+g];if(nv!=='0')delete S.pay[cur+':'+g];save();render();if(navigator.vibrate)navigator.vibrate(8)};
+$('list').addEventListener('change',e=>{const i=e.target.closest('.mi input');if(!i)return;const g=+i.dataset.m,k=cur+':'+g,t=S.tgt[g]||0,raw=i.value.trim();
+  if(raw===''){delete S.mins[k]}
+  else{const m=Math.max(0,Math.min(1440,Math.round(parseFloat(raw))||0));S.mins[k]=m;
+    if(m>=Math.ceil(t/2)){setCell(cur,g,'1');delete S.pay[k]}else setCell(cur,g,'0')}
+  save();render()});
+$('list').addEventListener('input',e=>{const i=e.target.closest('.mi input');if(!i)return;const g=+i.dataset.m,k=cur+':'+g,t=S.tgt[g]||0,raw=i.value.trim();
+  if(raw===''){delete S.mins[k];return}
+  const m=Math.max(0,Math.min(1440,Math.round(parseFloat(raw))||0));S.mins[k]=m;
+  const ok=m>=Math.ceil(t/2);setCell(cur,g,ok?'1':'0');if(ok)delete S.pay[k];
+  const w=i.closest('.rw'),ck=w.querySelector('.ck');ck.className='ck '+(ok?'y':'n');ck.textContent=ok?'✓':'✕';w.querySelector('.row').classList.toggle('done',ok);save()});
 $('list').addEventListener('click',e=>{const n=e.target.closest('.nt');if(!n)return;const g=+n.dataset.n,d=cur;
   const ta=document.createElement('textarea');ta.className='nti';ta.rows=2;ta.maxLength=500;ta.placeholder='কেন হয়নি? (যেমন: অসুস্থ, ক্লাস, ঘুম…)';ta.value=(S.notes||{})[d+':'+g]||'';
   n.replaceWith(ta);ta.focus();
@@ -641,12 +660,12 @@ $('gl').onchange=e=>{const sk=e.target.dataset.s!==undefined?'sub':e.target.data
   const t=e.target.dataset.t;if(t!==undefined){S.tgt[+t]=Math.max(0,Math.min(1440,+e.target.value||0));save();render();return}const g=e.target.dataset.g;if(g!==undefined){S.goals[+g]=e.target.value.trim()||'Goal';save();render()}};
 $('gl').onclick=e=>{const g=e.target.dataset.x;if(g===undefined||S.goals.length<2)return;
   if(!confirm('এই goal ও তার ডেটা মুছবেন?'))return;
-  const i=+g;S.goals.splice(i,1);S.tgt.splice(i,1);S.sub.splice(i,1);S.tk.splice(i,1);S.notes=rx(S.notes,i);S.cat=rx(S.cat,i);S.pay=rx(S.pay,i);for(const k in S.log){const a=S.log[k].split('');a.splice(i,1);S.log[k]=a.join('')}
+  const i=+g;S.goals.splice(i,1);S.tgt.splice(i,1);S.sub.splice(i,1);S.tk.splice(i,1);S.notes=rx(S.notes,i);S.cat=rx(S.cat,i);S.pay=rx(S.pay,i);S.mins=rx(S.mins,i);for(const k in S.log){const a=S.log[k].split('');a.splice(i,1);S.log[k]=a.join('')}
   save();renderSettings();render()};
 $('frsw').onclick=()=>{S.fb=(S.fb===false);save();renderSettings();render()};
 $('addg').onclick=()=>{if(S.goals.length<12){S.goals.push('New goal');save();renderSettings();render()}};
 function chk(){let h=true;try{h=!localStorage.getItem(KEY+'_prev')}catch(e){}$('undo').classList.toggle('hide',h)}
-$('rst').onclick=()=>{if(confirm('সব ✓/✕ এন্ট্রি মুছবেন? Goal ও তারিখ থাকবে। পরে Undo করা যাবে।')){try{localStorage.setItem(KEY+'_prev',JSON.stringify(S))}catch(e){}S.log={};S.notes={};S.cat={};S.rec={};S.ex={};S.pay={};save();render();chk()}};
+$('rst').onclick=()=>{if(confirm('সব ✓/✕ এন্ট্রি মুছবেন? Goal ও তারিখ থাকবে। পরে Undo করা যাবে।')){try{localStorage.setItem(KEY+'_prev',JSON.stringify(S))}catch(e){}S.log={};S.notes={};S.cat={};S.rec={};S.ex={};S.pay={};S.mins={};save();render();chk()}};
 $('undo').onclick=()=>{try{const x=JSON.parse(localStorage.getItem(KEY+'_prev'));if(x){S=x;save();localStorage.removeItem(KEY+'_prev');render();renderSettings();chk()}}catch(e){}};
 $('exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='habit_backup.json';a.click()};
 $('imp').onclick=()=>$('file').click();
