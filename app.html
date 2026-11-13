@@ -3,11 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
 <title>Habits</title>
+<link rel="manifest" href="manifest-app.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 <script>
 fetch('index.html',{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(h){
+  h=h.replace('href="manifest.json"','href="manifest-app.json"');
   var i=h.lastIndexOf('</body>');
   if(i<0)throw 0;
   h=h.slice(0,i)+'<script src="subjects.js"><\/script>'+h.slice(i);
